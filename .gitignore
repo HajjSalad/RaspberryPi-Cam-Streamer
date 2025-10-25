@@ -20,6 +20,7 @@ trigger_server
 /tmp/
 /*.bak
 *.lo
+trigger_server.py
 
 # Ignore Editor / System Files
 *.swp
@@ -32,3 +33,5 @@ trigger_server
 __pycache__/
 *.pyc
 *.pyo
+
+
