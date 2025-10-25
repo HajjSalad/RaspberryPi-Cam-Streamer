@@ -1,0 +1,34 @@
+# Ignore Kernel Module Build Artifacts
+*.o
+*.ko
+*.mod
+*.mod.c
+*.mod.o
+*.cmd
+modules.order
+Module.symvers
+
+# Ignore User-space Binaries
+ioctl_test
+trigger_server
+*.out
+*.exe
+
+# Ignore Build and Temporary Files
+/build/
+/dist/
+/tmp/
+/*.bak
+*.lo
+
+# Ignore Editor / System Files
+*.swp
+*.swo
+.vscode/
+.idea/
+.DS_Store
+
+# Python Cache Files
+__pycache__/
+*.pyc
+*.pyo
