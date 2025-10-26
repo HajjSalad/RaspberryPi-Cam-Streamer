@@ -9,7 +9,7 @@ modules.order
 Module.symvers
 
 # Ignore User-space Binaries
-ioctl_test
+camera_client
 trigger_server
 *.out
 *.exe

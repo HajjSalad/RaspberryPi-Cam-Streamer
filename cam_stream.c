@@ -7,7 +7,7 @@
 #include <linux/device.h>
 #include <linux/uaccess.h>
 #include <linux/gpio/consumer.h>
-#include "ioctl_test.h"
+#include "camera_client.h"
 
 #define GPIO_BASE                 571
 #define LED_RED_GPIO        (GPIO_BASE + 21)
@@ -78,8 +78,10 @@ static ssize_t cam_stream_read(struct file *file, char *buf, size_t len, loff_t 
     ret = kernel_read(camera_filp, kbuf, len, &camera_filp->f_pos);
     if (ret > 0) {
         // Copy the data to user space
-        if (copy_to_user(buf, kbuf, ret))       
+        if (copy_to_user(buf, kbuf, ret)) {
+            kfree(kbuf);       
             return -EFAULT;
+        }
     }
 
     kfree(kbuf);

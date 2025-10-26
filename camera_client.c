@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include "ioctl_test.h"
+#include "camera_client.h"
 
 int main() {
     int fd = open("/dev/cam_stream", O_RDWR);
