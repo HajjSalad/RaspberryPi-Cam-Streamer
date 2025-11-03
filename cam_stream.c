@@ -33,21 +33,21 @@ static struct gpio_desc *red_led, *green_led;
 //        subsequent read(), write(), or ioctl() operations can access it later
 static int cam_stream_open(struct inode *inode, struct file *file) 
 {
-    struct file *camera_filp;
+    // struct file *camera_filp;
 
     printk(KERN_INFO "cam_stream open: /dev/cam_stream opened by user-space\n");
 
     // Attempt to open the camera device handled by V4L2
-    camera_filp = filp_open("/dev/video0", O_RDWR, 0);
-    if (IS_ERR(camera_filp)) {
-        printk(KERN_ERR "cam_stream open: Failed to open /dev/video0\n");
-        return PTR_ERR(camera_filp);
-    }
+    // camera_filp = filp_open("/dev/video0", O_RDWR, 0);
+    // if (IS_ERR(camera_filp)) {
+    //     printk(KERN_ERR "cam_stream open: Failed to open /dev/video0\n");
+    //     return PTR_ERR(camera_filp);
+    // }
 
-    printk(KERN_INFO "cam_stream open: Opened /dev/video0 successfully\n");
+    // printk(KERN_INFO "cam_stream open: Opened /dev/video0 successfully\n\n");
 
-    // Save the camera file pointer so other file operations can use it
-    file->private_data = camera_filp;
+    // // Save the camera file pointer so other file operations can use it
+    // file->private_data = camera_filp;
 
     return 0;
 }
@@ -57,36 +57,53 @@ static int cam_stream_open(struct inode *inode, struct file *file)
 //      - Allocate temporary kernel buffer to hold the data read from /dev/video0
 //      - Read bytes from the camera device into the kernel buffer
 //      - Copy the data from the kernel space to user space
-static ssize_t cam_stream_read(struct file *file, char *buf, size_t len, loff_t *offset) 
-{
-    struct file *camera_filp;
-    char *kbuf;
-    ssize_t ret;
+// static ssize_t cam_stream_read(struct file *file, char *buf, size_t len, loff_t *offset) 
+// {
+//     struct file *camera_filp;
+//     char *kbuf;
+//     ssize_t ret;
 
-    // Get camera file from private_data
-    camera_filp = file->private_data;
-    if (!camera_filp)
-        return -ENODEV;
+//     // Get camera file from private_data
+//     camera_filp = file->private_data;
+//     if (!camera_filp) {
+//         return -ENODEV;
+//     } else {
+//         printk(KERN_INFO "cam_stream read: Camera file retrieved from private_data\n");
+//     }
 
-    // Temporary kernel buffer to hold the data from the camera device
-    // Allocate temporary kernel buffer
-    kbuf = kmalloc(len, GFP_KERNEL);
-    if (!kbuf)
-        return -ENOMEM;
+//     // Temporary kernel buffer to hold the data from the camera device
+//     // Allocate temporary kernel buffer
+//     kbuf = kmalloc(len, GFP_KERNEL);
+//     if (!kbuf)
+//         return -ENOMEM;
 
-    // Read from actual /dev/video0 into kernel buffer
-    ret = kernel_read(camera_filp, kbuf, len, &camera_filp->f_pos);
-    if (ret > 0) {
-        // Copy the data to user space
-        if (copy_to_user(buf, kbuf, ret)) {
-            kfree(kbuf);       
-            return -EFAULT;
-        }
-    }
+//     // Read from actual /dev/video0 into kernel buffer
+//     printk(KERN_INFO "cam_stream read: Reading from camera file...\n");
 
-    kfree(kbuf);
-    return ret;         // Return number of bytes read, a negative error code
-}
+//     //ret = kernel_read(camera_filp, kbuf, len, &camera_filp->f_pos);
+    
+//     if (camera_filp->f_op && camera_filp->f_op->read) {
+//         ret = camera_filp->f_op->read(camera_filp, kbuf, len, &camera_filp->f_pos);
+//         printk(KERN_INFO "cam_stream read: camera file has read operation, bytes read = %zd\n", ret);
+//         printk(KERN_INFO "cam_stream read: Attempting to read %zu bytes from /dev/video0\n", len);
+//     } else {
+//         printk(KERN_INFO "cam_stream read: camera file has no read operation\n");
+//         kfree(kbuf);
+//         return -EINVAL;
+//     }
+
+//     if (ret > 0) {
+//         // Copy the data to user space
+//         printk(KERN_INFO "cam_stream read: Copying kbuffer to user-space buffer\n");
+//         if (copy_to_user(buf, kbuf, ret)) {
+//             kfree(kbuf);       
+//             return -EFAULT;
+//         }
+//     }
+
+//     kfree(kbuf);
+//     return ret;         // Return number of bytes read, a negative error code
+// }
 
 // release() -> Invoked when user space process calls close(fd)
 // Purpose: 
@@ -94,19 +111,19 @@ static ssize_t cam_stream_read(struct file *file, char *buf, size_t len, loff_t 
 //      - Clear private data pointer
 static int cam_stream_release(struct inode *inode, struct file *file) 
 {
-    struct file *camera_filp;
+    // struct file *camera_filp;
 
-    // Close the camera device (/dev/video0)
-    camera_filp = file->private_data;
-    if (camera_filp) {
-        filp_close(camera_filp, NULL);
-        printk(KERN_INFO "cam_stream release: /dev/video0 closed successfully\n");
-    } else {
-        printk(KERN_INFO "cam_stream release: No /dev/video0 to close\n");
-    }
+    // // Close the camera device (/dev/video0)
+    // camera_filp = file->private_data;
+    // if (camera_filp) {
+    //     filp_close(camera_filp, NULL);
+    //     printk(KERN_INFO "cam_stream release: /dev/video0 closed successfully\n");
+    // } else {
+    //     printk(KERN_INFO "cam_stream release: No /dev/video0 to close\n");
+    // }
 
-    // Clear the private_data pointer
-    file->private_data = NULL;
+    // // Clear the private_data pointer
+    // file->private_data = NULL;
 
     printk(KERN_INFO "cam_stream release: /dev/cam_stream released by user-space\n");
     return 0;
@@ -121,7 +138,7 @@ static int cam_stream_release(struct inode *inode, struct file *file)
 //        camera file pointer in file->private_data
 static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-    struct file *camera_filp;
+    // struct file *camera_filp;
 
     switch (cmd) {
         case CAM_IOC_START:
@@ -139,7 +156,7 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
             if (gpio_ready) {
                 gpiod_set_value(green_led, 1);
                 gpiod_set_value(red_led, 0);
-                printk(KERN_INFO "cam_stream ioctl: LED is RED\n");
+                printk(KERN_INFO "cam_stream ioctl: LED is RED\n\n");
             } else {
                 printk(KERN_INFO "cam_stream ioctl: LED is RED (simulated)\n");
             }
@@ -156,11 +173,13 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
             break;
         default:
             // Forward unknown ioctls (V4L2 native IOCTLs eg VIDIOC_STREAMON) to /dev/video0
-            camera_filp = file->private_data;   
-            if (camera_filp && camera_filp->f_op && camera_filp->f_op->unlocked_ioctl) 
-                return camera_filp->f_op->unlocked_ioctl(camera_filp, cmd, arg);
+            // camera_filp = file->private_data;   
+            // if (camera_filp && camera_filp->f_op && camera_filp->f_op->unlocked_ioctl) 
+            //     return camera_filp->f_op->unlocked_ioctl(camera_filp, cmd, arg);
             
-            return -ENOTTY;     // Inappropriate ioctl for device
+            // return -ENOTTY;     // Inappropriate ioctl for device
+
+            return -EINVAL;
     }
     return 0;
 }
@@ -168,7 +187,7 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
 static struct file_operations fops = {
     .owner = THIS_MODULE,
     .open = cam_stream_open,
-    .read = cam_stream_read,
+    // .read = cam_stream_read,
     .release = cam_stream_release,
     .unlocked_ioctl = cam_stream_ioctl,
 };
@@ -234,7 +253,7 @@ static int __init my_init(void)
         printk(KERN_INFO "cam_stream init: LED is RED\n");
     }
 
-    printk(KERN_INFO "cam_stream init: Device created successfully\n");
+    printk(KERN_INFO "cam_stream init: Device created successfully\n\n");
     return 0;
 }
 

@@ -13,6 +13,7 @@ camera_client
 trigger_server
 *.out
 *.exe
+*.raw
 
 # Ignore Build and Temporary Files
 /build/

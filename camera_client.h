@@ -3,9 +3,9 @@
 
 #include <linux/ioctl.h>
 
-#define MY_CAM_IOC_MAGIC 'k'
-#define MY_CAM_IOC_START _IO(MY_CAM_IOC_MAGIC, 1)
-#define MY_CAM_IOC_STOP _IO(MY_CAM_IOC_MAGIC, 2)
-#define MY_CAM_IOC_RESET _IO(MY_CAM_IOC_MAGIC, 3)
+#define CAM_IOC_MAGIC 'k'
+#define CAM_IOC_START _IO(CAM_IOC_MAGIC, 1)
+#define CAM_IOC_STOP _IO(CAM_IOC_MAGIC, 2)
+#define CAM_IOC_RESET _IO(CAM_IOC_MAGIC, 3)
 
 #endif
