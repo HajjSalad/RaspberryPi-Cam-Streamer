@@ -20,6 +20,8 @@ int main() {
     FILE *out;
     ssize_t bytes_read;
     time_t start_time, current_time;
+    struct v4l2_requestbuffers req;
+    struct v4l2_requestbuffers buf;
     
     // Open control device 
     dev_fd = open(DEVICE_PATH, O_RDWR);
@@ -72,7 +74,7 @@ int main() {
         goto stop;
     }
 
-    // Request buffers -> Request buffers from kernel space for the captures frames
+    // Request buffers -> Request buffers from kernel space for the captured frames
     // which will then be mapped into the user space
     memset(&req, 0, sizeof(req));
     req.count = 4;
@@ -83,20 +85,57 @@ int main() {
         goto stop;
     }
 
-    
+    // Map from the kernel space to the user space
+    buffers = calloc(req.count, sizeof(*buffers));      // Allocate array in user space to copy the frames to
+    for (n_buffers = 0; n_buffers < req.count; n_buffers++) {
+        memset(&buf, 0, sizeof(buf));
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = n_buffers;
 
-    // // Open output file to store raw captured frames
-    // out = fopen(OUTPUT_FILE, "wb");
-    // if (!out) {
-    //     perror("camera_client: Failed to open the output file");
-    //     ioctl(fd, CAM_IOC_STOP);
-    //     close(fd);
-    //     return 1;
-    // } else {
-    //     printf("camera_client: Output file opened successfully\n");
-    // }
+        if (ioctl(cam_fd, VIDIOC_QUERYBUF, &buf) < 0) {
+            perror("camera_client: Failed querying the buffer");
+            goto stop;
+        }
+
+        // Mapping kernel buffers into user space
+        buffers[n_buffers].length = buf.length;
+        buffers[n_buffers].start = mmap(NULL, 
+                                        buf.length,
+                                        PROT_READ | PROT_WRITE, 
+                                        MAP_SHARED,
+                                        cam_fd, 
+                                        buf.m.offset);
+        if(buffers[n_buffers].start == MAP_FAILED) {
+            perror("camera_client: Failed mapping the frames");
+            goto stop;
+        }
+    }
+
+    // Queue the kernel space buffers
+    for (unsigned int i = 0; i < n_buffers; i++) {
+        memset(&buf, 0, sizeof(buf));
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
+        ioctl(cam_fd, VIDIOC_QBUF, &buf);
+    }
+
+    // Start Streaming
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ioctl(cam_fd, VIDIOC_STREAMON, &type);
+
+    // Open output file to store raw captured frames
+    out = fopen(OUTPUT_FILE, "wb");
+    if (!out) {
+        perror("camera_client: Failed to open the output file");
+        goto stop_stream;
+    } else {
+        printf("camera_client: Output file opened successfully\n");
+    }
 
     // Read frames for STREAM_DURATION seconds
+    printf('Capturing for %d seconds...\n', STREAM_DURATION);
     time(&start_time);
     do {
         printf("Streaming...\n");
