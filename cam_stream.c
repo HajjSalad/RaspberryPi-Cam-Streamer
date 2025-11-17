@@ -6,8 +6,8 @@
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/uaccess.h>
-#include <linux/gpio/consumer.h>
 #include "camera_client.h"
+#include <linux/gpio/consumer.h>
 
 #define GPIO_BASE                 571
 #define LED_RED_GPIO        (GPIO_BASE + 21)
@@ -22,124 +22,30 @@ static struct class *cls;
 static struct device *dev;
 
 static bool gpio_ready = false;
-
 static struct gpio_desc *red_led, *green_led;
 
 // open() -> Invoked when user-space process opens /dev/cam_stream
-// Purpose:
-//      - Log that /dev/cam_stream has been opened
-//      - Internally open the camera device (/dev/video0) using filp_open()
-//      - Store the camera's file pointer in /dev/cam_stream's file structure so that
-//        subsequent read(), write(), or ioctl() operations can access it later
+// Purpose: Log that /dev/cam_stream has been opened
 static int cam_stream_open(struct inode *inode, struct file *file) 
 {
-    // struct file *camera_filp;
-
     printk(KERN_INFO "cam_stream open: /dev/cam_stream opened by user-space\n");
-
-    // Attempt to open the camera device handled by V4L2
-    // camera_filp = filp_open("/dev/video0", O_RDWR, 0);
-    // if (IS_ERR(camera_filp)) {
-    //     printk(KERN_ERR "cam_stream open: Failed to open /dev/video0\n");
-    //     return PTR_ERR(camera_filp);
-    // }
-
-    // printk(KERN_INFO "cam_stream open: Opened /dev/video0 successfully\n\n");
-
-    // // Save the camera file pointer so other file operations can use it
-    // file->private_data = camera_filp;
-
     return 0;
 }
 
-// read() -> Invoked when a user-space process calls read(fd, buffer, size)
-// Purpose:
-//      - Allocate temporary kernel buffer to hold the data read from /dev/video0
-//      - Read bytes from the camera device into the kernel buffer
-//      - Copy the data from the kernel space to user space
-// static ssize_t cam_stream_read(struct file *file, char *buf, size_t len, loff_t *offset) 
-// {
-//     struct file *camera_filp;
-//     char *kbuf;
-//     ssize_t ret;
-
-//     // Get camera file from private_data
-//     camera_filp = file->private_data;
-//     if (!camera_filp) {
-//         return -ENODEV;
-//     } else {
-//         printk(KERN_INFO "cam_stream read: Camera file retrieved from private_data\n");
-//     }
-
-//     // Temporary kernel buffer to hold the data from the camera device
-//     // Allocate temporary kernel buffer
-//     kbuf = kmalloc(len, GFP_KERNEL);
-//     if (!kbuf)
-//         return -ENOMEM;
-
-//     // Read from actual /dev/video0 into kernel buffer
-//     printk(KERN_INFO "cam_stream read: Reading from camera file...\n");
-
-//     //ret = kernel_read(camera_filp, kbuf, len, &camera_filp->f_pos);
-    
-//     if (camera_filp->f_op && camera_filp->f_op->read) {
-//         ret = camera_filp->f_op->read(camera_filp, kbuf, len, &camera_filp->f_pos);
-//         printk(KERN_INFO "cam_stream read: camera file has read operation, bytes read = %zd\n", ret);
-//         printk(KERN_INFO "cam_stream read: Attempting to read %zu bytes from /dev/video0\n", len);
-//     } else {
-//         printk(KERN_INFO "cam_stream read: camera file has no read operation\n");
-//         kfree(kbuf);
-//         return -EINVAL;
-//     }
-
-//     if (ret > 0) {
-//         // Copy the data to user space
-//         printk(KERN_INFO "cam_stream read: Copying kbuffer to user-space buffer\n");
-//         if (copy_to_user(buf, kbuf, ret)) {
-//             kfree(kbuf);       
-//             return -EFAULT;
-//         }
-//     }
-
-//     kfree(kbuf);
-//     return ret;         // Return number of bytes read, a negative error code
-// }
-
 // release() -> Invoked when user space process calls close(fd)
-// Purpose: 
-//      - Close the camera device (/dev/video0) opened in open()
-//      - Clear private data pointer
+// Purpose: Close the device (/dev/cam_stream) opened in open()
 static int cam_stream_release(struct inode *inode, struct file *file) 
 {
-    // struct file *camera_filp;
-
-    // // Close the camera device (/dev/video0)
-    // camera_filp = file->private_data;
-    // if (camera_filp) {
-    //     filp_close(camera_filp, NULL);
-    //     printk(KERN_INFO "cam_stream release: /dev/video0 closed successfully\n");
-    // } else {
-    //     printk(KERN_INFO "cam_stream release: No /dev/video0 to close\n");
-    // }
-
-    // // Clear the private_data pointer
-    // file->private_data = NULL;
-
     printk(KERN_INFO "cam_stream release: /dev/cam_stream released by user-space\n");
     return 0;
 }
 
 // ioctl() -> Invoked when user-space process issues an ioctl() on /dev/cam_stream
 // Purpose:
-//      - Handle custom camera control commands (CAM_IOC_START, CAM_IOC_STOP, CAM_IOC_RESET)
+//      - Handle custom LED control commands (CAM_IOC_START, CAM_IOC_STOP, CAM_IOC_RESET)
 //      - Toggle GPIO LEDs to indicate camera status (RED, GREEN, YELLOW)
-//      - For unrecognized ioctl commands (e.g., native V4L2 ioctls like VIDIOC_STREAMON),
-//        forward the command to the actual camera device (/dev/video0) using the saved
-//        camera file pointer in file->private_data
 static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-    // struct file *camera_filp;
-
     switch (cmd) {
         case CAM_IOC_START:
             printk(KERN_INFO "cam_stream ioctl: START command received\n");
@@ -172,13 +78,6 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
             }
             break;
         default:
-            // Forward unknown ioctls (V4L2 native IOCTLs eg VIDIOC_STREAMON) to /dev/video0
-            // camera_filp = file->private_data;   
-            // if (camera_filp && camera_filp->f_op && camera_filp->f_op->unlocked_ioctl) 
-            //     return camera_filp->f_op->unlocked_ioctl(camera_filp, cmd, arg);
-            
-            // return -ENOTTY;     // Inappropriate ioctl for device
-
             return -EINVAL;
     }
     return 0;
@@ -187,7 +86,6 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
 static struct file_operations fops = {
     .owner = THIS_MODULE,
     .open = cam_stream_open,
-    // .read = cam_stream_read,
     .release = cam_stream_release,
     .unlocked_ioctl = cam_stream_ioctl,
 };
