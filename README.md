@@ -10,7 +10,6 @@ negotiation, mmap, queue/dequeue loop and frame capture.
 This project is designed for Raspberry Pi 5 hardware but can be adapted to other Linux platforms with a V4L2-compatible 
 camera and GPIO-accessible LEDs, with minor adjustments for GPIO pin mapping and device paths.
 
----
 ## 🚀 Project Features
 ✅ **Kernel Module (`cam_stream.ko`)**
 - Implements a character device  
@@ -22,7 +21,6 @@ camera and GPIO-accessible LEDs, with minor adjustments for GPIO pin mapping and
 - Open device
 - Close device
 
----
 ## 📂 Repository Structure
 ```
 📁 pi_live_stream/
@@ -32,7 +30,6 @@ camera and GPIO-accessible LEDs, with minor adjustments for GPIO pin mapping and
 │   ├── Makefile              # Builds kernel module + client
 │   └── README.md             # Documentation
 ```
----
 ## ⚙️ Hardware
 - Raspberry Pi 5
 - Logitech C270 webcam
