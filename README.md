@@ -1,5 +1,5 @@
 ## 📹 Embedded Camera Streaming System
-A complete embedded Linux project demonstrating device driver development, IOCTL-based LED control, and real-time camera streaming using the V4L2 subsytem.
+A complete embedded Linux project demonstrating device driver development, IOCTL-based LED control, and real-time camera streaming using the V4L2 subsytem.  
 The project consists of:
 - A **Linux kernel module** exposing custom IOCTL commands to toggle camera-status LEDs. 
 - A **user-space camera client** implementing a full V4L2 streaming pipeline: device configuration, buffer
