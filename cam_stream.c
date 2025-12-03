@@ -238,8 +238,7 @@ static int __init my_init(void)
     green_led = gpio_to_desc(LED_GREEN_GPIO);
 
     if (!red_led || !green_led) {      
-        printk(KERN_WARNING "cam_stream init: Failed to add to descriptor one or 
-            both GPIOs (RED:%d, GREEN:%d)\n", LED_RED_GPIO, LED_GREEN_GPIO);
+        printk(KERN_WARNING "cam_stream init: Failed to add to descriptor one or both GPIOs (RED:%d, GREEN:%d)\n", LED_RED_GPIO, LED_GREEN_GPIO);
         gpio_ready = false;
 
         // Clean up any that succeeded

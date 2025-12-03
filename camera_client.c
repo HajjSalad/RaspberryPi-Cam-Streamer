@@ -24,6 +24,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <jpeglib.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include "camera_client.h"
@@ -61,6 +62,8 @@ struct buffer {
 struct camera_ctx {
     int dev_fd;                     /**< File descriptor for LED/control device */
     int cam_fd;                     /**< File descriptor for camera device */
+    int server_fd;                  
+    int client_fd;          
     struct v4l2_format fmt;         /**< Video format configuration */
     struct v4l2_requestbuffers req; /**< Requested buffers information */
     struct v4l2_buffer buf;         /**< Temporary buffer struct for operations */
@@ -386,6 +389,9 @@ int stop_stream(struct camera_ctx *ctx)
 int capture_frames(struct camera_ctx *ctx) {
     
     printf("camera_client: Capturing for %d seconds...\n", STREAM_DURATION);
+
+    unsigned char jpeg_buffer[500000];
+    unsigned long jpeg_size;
     
     time_t start_time, current_time;
     time(&start_time);
@@ -401,8 +407,17 @@ int capture_frames(struct camera_ctx *ctx) {
             break;
         }
 
-        // Write frame data to stdout (or any target file)
-        fwrite(ctx->buffers[ctx->buf.index].start, ctx->buf.bytesused, 1, stdout);
+        // Convert YUYV to JPEG
+        convert_yuyv_to_jpeg(
+            ctx->buffers[ctx->buf.index].start,
+            ctx->fmt.fmt.pix.width,
+            ctx->fmt.fmt.pix.height,
+            jpeg_buffer,
+            &jpeg_size
+        );
+
+        // Send MPJEG frame
+        send_mjpeg_frame(ctx->client_fd, jpeg_buffer, jpeg_size);
         
         // Requeue the buffer to be filled again
         if (ioctl(ctx->cam_fd, VIDIOC_QBUF, &ctx->buf) < 0){
@@ -414,6 +429,139 @@ int capture_frames(struct camera_ctx *ctx) {
     } while (difftime(current_time, start_time) < STREAM_DURATION);
 
     printf("Capture complete. Stopping stream...\n");
+    return 0;
+}
+
+/**
+* @brief Convert a raw YUYV422 frame into a compressed JPEG image.
+* 
+* This function takes a single raw camera frame in YUYV422 format (YUV 4:2:2) 
+* and compresses it into JPEG format using libjpeg. The output JPEG data is 
+* written into a caller-provided memory buffer.
+*
+* Conversion pipeline:
+*   - Camera produces YUYV422 (YUV packed format)
+*   - Function converts YUYV -> RGB24 (per scanline)
+*   - RGB24 is fed into the libjpeg compressor
+*
+* Processing Steps:
+*   1. Initialize libjpeg compression object and error handler
+*   2. Configure the compressor to write output into an in-memory buffer
+*   3. Set image parameters (width, height, components, color space)
+*   4. Apply default JPEG compression settings:
+*       - Sets standard Huffman tables
+*       - Prepares internal structures for scanline compression
+*       - Ensures reasonable defaults for quality, quantization, and optimization
+*   5. Convert YUYV422 -> RGB24 one scanline at a time
+*   6. Pass RGB scanlines to the JPEG compressor
+*   7. Finalize JPEG output (write end markers)
+*   8. Release libjpeg resources
+*
+* @param[in]  yuyv_data    Pointer to raw YUYV422 image buffer.
+* @param[in]  width        Width of the input image in pixels.
+* @param[in]  height       Height of the input image in pixels.
+* @param[out] jpeg_buffer  Pointer to a memory buffer that will receive
+*                          the compressed JPEG data. libjpeg may allocate
+*                          or resize this buffer.
+* @param[out] jpeg_size    Pointer to an unsigned long where the function
+*                          writes the size (in bytes) of the generated JPEG.
+*
+* @return 0 on success, non-zero on failure
+*
+* @note Caller is responsible for freeing the memory allocated inside
+*       jpeg_buffer if libjpeg allocated or resized it.
+*/
+int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
+                         int width,
+                         int height,
+                         unsigned char* jpeg_buffer,
+                         unsigned long* jpeg_size)
+{
+    struct jpeg_compress_struct cinfo;      // main JPEG compression object
+    struct jpeg_error_mgr jerr;             // Error manager struct used by libjpeg
+
+    // Link cinfo compression object to libjpeg internal error-handling system
+    cinfo.err = jpeg_std_error(&jerr);
+
+    // 1. Initializes the compressor, allocate internal memory and prep cinfo for compression
+    jpeg_create_compress(&cinfo);        
+
+    // 2. Set output destination to memory buffer
+    jpeg_mem_dest(&cinfo, jpeg_buffer, jpeg_size);
+
+    // 3. Image parameters
+    cinfo.image_width = width;
+    cinfo.image_height = height;
+    cinfo.input_components = 3;         // # of color components in input image (RGB = 3 channels)
+    cinfo.in_color_space = JCS_RGB;     // color space of input image (Input is RGB)
+
+    // 4. Default config
+    jpeg_set_defaults(&cinfo);          
+    jpeg_set_quality(&cinfo, 80, TRUE);         // 80 = good balance
+
+    jpeg_start_compression(&cinfo, TRUE);       // TRUE = write full Q-tables and Huffman tables
+
+    // Temporary buffer to store one RGB scanline
+    unsigned char *row = malloc(width * 3);     // Each scanline = width pixels * 3 bytes (R,G, B)
+
+    // 5. Convert YUYV -> RGB and feed scanlines into libjpeg
+    while (cinfo.next_scanline < cinfo.image_height) {
+
+        // Pointer to the start of the YUYV rows
+        unsigned char *yuyv = yuyv_data + (cinfo.next_scanline * width * 2);
+
+        // Convert pairs of pixels
+        for (int x = 0; x < width; x += 2) {
+
+            int y0 = yuyv[0];
+            int u = yuyv[1];
+            int y1 = yuyv[2];
+            int v = yuyv[3];
+
+            // Convert YUV to RGB (BT.601 standard)
+            #define CLIP(x) ( (x)<0 ? 0 : ( (x)>255 ? 255 : (x) ) )
+
+            int c = y0 - 16;
+            int d = u - 128;
+            int e = v - 128;
+
+            // Pixel 0
+            int r0 = CLIP((298*c + 409*e + 128) >> 8);
+            int g0 = CLIP((298*c - 100*d - 208*e + 128) >> 8);
+            int b0 = CLIP((298*c + 516*d + 128) >> 8);
+
+            // Pixel 1
+            c = y1 - 16;
+            int r1 = CLIP((298*c + 409*e + 128) >> 8);
+            int g1 = CLIP((298*c - 100*d - 208*e + 128) >> 8);
+            int b1 = CLIP((298*c + 516*d + 128) >> 8);
+
+            // Store RGB results into row buffer correctly
+            row[(x * 3) + 0] = r0;
+            row[(x + 3) + 1] = g0;
+            row[(x * 3) + 2] = b0;
+
+            row[(x * 3) + 3] = r1;
+            row[(x + 3) + 4] = g1;
+            row[(x * 3) + 5] = b1;
+
+            // Move to the next YUYV block (4 bytes)
+            yuyv += 4;
+        }
+
+        // Feed one scanline to libjpeg
+        JSAMPROW row_pointer[1] = { row };
+        jpeg_write_scanlines(&cinfo, row_pointer, 1);
+    }
+
+    // Finish compression - Writes end-of-image marker, flushes buffers, finalizes memory
+    jpeg_finish_compress(&cinfo);
+
+    // Cleanup libjpeg resources
+    jpeg_destroy_compress(&cinfo);
+
+    free(row);
+
     return 0;
 }
 
