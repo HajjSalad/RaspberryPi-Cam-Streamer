@@ -47,8 +47,8 @@
 * Each buffer corresponds to one frame that the camera can write to.
 */
 struct buffer {
-    void   *start;   /**< Pointer to the start of the mapped buffer in user space*/
-    size_t  length;  /**< Size of the buffer in bytes */
+    void *start;   /**< Pointer to the start of the mapped buffer in user space*/
+    size_t length;  /**< Size of the buffer in bytes */
 };
 
 /**
@@ -62,14 +62,40 @@ struct buffer {
 struct camera_ctx {
     int dev_fd;                     /**< File descriptor for LED/control device */
     int cam_fd;                     /**< File descriptor for camera device */
-    int server_fd;                  
-    int client_fd;          
+
     struct v4l2_format fmt;         /**< Video format configuration */
     struct v4l2_requestbuffers req; /**< Requested buffers information */
-    struct v4l2_buffer buf;         /**< Temporary buffer struct for operations */
+    struct v4l2_buffer buf;         /**< Temporary buffer struct for operations */+
+
     struct buffer *buffers;         /**< Pointer to an array of mapped buffers */
     unsigned int n_buffers;         /**< Number of mapped buffers */
 };
+
+/**
+* @brief Represents a single JPEG-compressed frame.
+*
+* This structure stores the pointer and size of the JPEG image produced
+* from the raw YUYV data. The memory is reused each frame to avoid allocations.
+*/
+struct jpeg_frame {
+    unsigned char* data;            /**< Pointer to JPEG-compressed image data */
+    unsigned long size;             /**< Size of the JPEG data in bytes */
+};
+
+/**
+* @brief Streaming context for MJPEG output.
+*
+* Stores per-client streaming state, including the file descriptors and the buffer
+* that holds the JPEG-encoded frame ready to be sent over the network.
+* 
+* This separation keeps MJPEG transmission state modular.
+*/
+struct stream_ctx {
+    int server_fd;                 /**< HTTP/MJPEG server socket */        
+    int client_fd;                 /**< Connected client socket */
+
+    struct jpeg_frame frame;       /**< JPEG frame buffer for the current output frame */
+}
 
 /**
 * @brief Open the control device (/dev/cam_stream).
@@ -386,7 +412,7 @@ int stop_stream(struct camera_ctx *ctx)
 * @note STREAMON must have been called before entering this loop.
 * @note Buffers must already be requested, mapped, and queued.
 */
-int capture_frames(struct camera_ctx *ctx) {
+int capture_frames(struct camera_ctx *ctx, struct stream_ctx *sctx) {
     
     printf("camera_client: Capturing for %d seconds...\n", STREAM_DURATION);
 
@@ -412,12 +438,16 @@ int capture_frames(struct camera_ctx *ctx) {
             ctx->buffers[ctx->buf.index].start,
             ctx->fmt.fmt.pix.width,
             ctx->fmt.fmt.pix.height,
-            jpeg_buffer,
-            &jpeg_size
+            &sctx->frame
         );
 
         // Send MPJEG frame
-        send_mjpeg_frame(ctx->client_fd, jpeg_buffer, jpeg_size);
+        send_mjpeg_frame(&sctx->frame, sctx->client_fd);
+
+        // Free JPEG after sending
+        free(frame->data);
+        frame->data = NULL;
+        frame->size = 0;
         
         // Requeue the buffer to be filled again
         if (ioctl(ctx->cam_fd, VIDIOC_QBUF, &ctx->buf) < 0){
@@ -460,22 +490,18 @@ int capture_frames(struct camera_ctx *ctx) {
 * @param[in]  yuyv_data    Pointer to raw YUYV422 image buffer.
 * @param[in]  width        Width of the input image in pixels.
 * @param[in]  height       Height of the input image in pixels.
-* @param[out] jpeg_buffer  Pointer to a memory buffer that will receive
-*                          the compressed JPEG data. libjpeg may allocate
-*                          or resize this buffer.
-* @param[out] jpeg_size    Pointer to an unsigned long where the function
-*                          writes the size (in bytes) of the generated JPEG.
+* @param[out] frame        Pointer to jpeg_frame structure that will receive:
+*                           - frame->buffer : allocated JPEG image buffer
+*                           - frame->size : size of JPEG data in bytes
 *
 * @return 0 on success, non-zero on failure
 *
-* @note Caller is responsible for freeing the memory allocated inside
-*       jpeg_buffer if libjpeg allocated or resized it.
+* @note Caller is responsible for freeing frame->buffer. libjpeg allocates it.
 */
 int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
                          int width,
                          int height,
-                         unsigned char* jpeg_buffer,
-                         unsigned long* jpeg_size)
+                         struct jpeg_frame *frame)
 {
     struct jpeg_compress_struct cinfo;      // main JPEG compression object
     struct jpeg_error_mgr jerr;             // Error manager struct used by libjpeg
@@ -487,7 +513,7 @@ int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
     jpeg_create_compress(&cinfo);        
 
     // 2. Set output destination to memory buffer
-    jpeg_mem_dest(&cinfo, jpeg_buffer, jpeg_size);
+    jpeg_mem_dest(&cinfo, &frame->data, &frame->size);
 
     // 3. Image parameters
     cinfo.image_width = width;
@@ -538,11 +564,11 @@ int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
 
             // Store RGB results into row buffer correctly
             row[(x * 3) + 0] = r0;
-            row[(x + 3) + 1] = g0;
+            row[(x * 3) + 1] = g0;
             row[(x * 3) + 2] = b0;
 
             row[(x * 3) + 3] = r1;
-            row[(x + 3) + 4] = g1;
+            row[(x * 3) + 4] = g1;
             row[(x * 3) + 5] = b1;
 
             // Move to the next YUYV block (4 bytes)
@@ -563,6 +589,63 @@ int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
     free(row);
 
     return 0;
+}
+
+/**
+* @brief Send a single JPEG image as an MJPEG frame over an HTTP multipart stream.
+* 
+* This function writes the following structure to the client socket:
+*
+*   --frame\r\n                         (multipart boundary marker)
+*   Content-Type: image/jpeg\r\n
+*   Content-Length: <jpeg_size>\r\n
+*   \r\n                                (separator btwn headers and binary data)
+*   <JPEG BINARY DATA>\r\n              (/r/n -> end-of-frame terminator)
+*   \r\n
+*
+* This matches the MJPEG-over-HTTP format used by web browsers and video players
+* when receiving multipart/x-mixed-replace streams.
+*
+* @param sctx   Pointer to stream context structure that contains:
+*                   - client_fd : active client socket
+*                   - frame.data : pointer to JPEG buffer
+*                   - frame.size : size of JPEG buffer
+*
+* @return 0 on success, negative value on error.
+*/
+int send_mjpeg_frame(struct jpeg_frame *frame, int client_fd) 
+{
+    if (!frame || !frame->data || frame->size == 0) {
+        return -1;
+    }
+
+    // Construct MJPEG frame header
+    char header[256];
+    int header_len = snprintf(header, sizeof(header),
+        "--frame\r\n"                       // multipart boundary marker
+        "Content-Type: image/jpeg\r\n"
+        "Content-Length: %lu\r\n"
+        "\r\n",                             // separator btwn headers and binary data
+        frame->size
+    );
+
+    // 1. Send multipart header
+    if (write(client_fd, header, header_len) != header_len) {
+        return -2;      // header write error
+    }
+
+    // 2. Send JPEG binary payload
+    if (write(client_fd, frame->data, frame->size) != (size_t)frame->size) {
+        return -3;      // payload write error
+    }
+
+    // 3. Send end-of-frame terminator
+    const char *end = "\r\n";
+    if (write(client_fd, end, 2) != 2) {
+        return -4;      // Footer write error
+    }
+
+    return 0;           // success
 }
 
 /**
