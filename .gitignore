@@ -8,6 +8,11 @@
 modules.order
 Module.symvers
 
+# Ignore legacy root-level sources (kept locally only)
+camera_client.h
+camera_client.c
+cam_stream.c
+
 # Ignore User-space Binaries
 camera_client
 trigger_server
