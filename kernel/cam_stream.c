@@ -96,12 +96,6 @@ static int cam_stream_release(struct inode *inode, struct file *file)
     return 0;
 }
 
-// ioctl() -> Invoked when user-space process issues an ioctl() on /dev/cam_stream
-// Purpose:
-//      - Handle custom LED control commands (CAM_IOC_START, CAM_IOC_STOP, CAM_IOC_RESET)
-//      - Toggle GPIO LEDs to indicate camera status (RED, GREEN, YELLOW)
-
-
 /**
 * @brief Handle custom IOCTL commands from user space for LED control.
 * 
