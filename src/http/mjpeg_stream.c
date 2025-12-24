@@ -34,6 +34,7 @@
 int send_mjpeg_frame(struct jpeg_frame *frame, struct stream_ctx *sctx) 
 {
     if (!frame || !frame->data || frame->size == 0) {
+        printf("Frames empty/not available");
         return -1;
     }
 

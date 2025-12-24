@@ -75,6 +75,8 @@ int initialize_camera(struct camera_ctx *cctx)
     if (queue_buffers(cctx) < 0) goto error;
     if (start_stream(cctx) < 0) goto error;
 
+    printf("\n");
+
     return 0;
 
 error:
@@ -391,10 +393,12 @@ int capture_frames(struct jpeg_frame *frame, struct camera_ctx *cctx, struct str
             perror("camera: Error converting YUYV to JPEG");
         }
 
-        // 3. Send PJEG frame to client
-        if (send_mjpeg_frame(frame, sctx) < 0) {
-            fprintf(stderr, "Client disconnected or send error.\n");
-            break;
+        // 3. Send JPEG frame to client
+        int ret = send_mjpeg_frame(frame, sctx);
+        if (ret < 0) {
+            // Check errno for more details if needed
+            fprintf(stderr, "Client disconnected or send error (ret=%d)\n", ret);
+            break;  // exit streaming loop
         }
 
         // 4. Free allocated JPEG memory

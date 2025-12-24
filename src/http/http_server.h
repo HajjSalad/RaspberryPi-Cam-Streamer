@@ -3,7 +3,7 @@
 
 /**
 * @file http_server.h
-* @brief Simple HTTP serever API for streaming MJPEG data.
+* @brief Simple HTTP server API for streaming MJPEG data.
 *
 * Provides functions for starting a minimal HTTP server, accepting incoming
 * client connections, sending The MJPEG response header, and streaming frames
