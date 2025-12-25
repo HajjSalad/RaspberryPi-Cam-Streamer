@@ -18,7 +18,7 @@
 *
 * @param cb Pointer to the CircularBuffer instance.
 */
-void cb_init(CircularBuffer *cb) {
+void circular_buffer_init(CircularBuffer *cb) {
     cb->head = 0;
     cb->tail = 0;
 }

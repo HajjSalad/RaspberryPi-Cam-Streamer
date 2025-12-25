@@ -28,7 +28,7 @@ typedef struct {
 } CircularBuffer;
 
 // Function prototypes
-void cb_init(CircularBuffer *cb);
+void circular_buffer_init(CircularBuffer *cb);
 void cb_write(CircularBuffer *cb, jpeg_frame* frame);
 bool cb_read(CircularBuffer *cb, jpeg_frame** frame);
 

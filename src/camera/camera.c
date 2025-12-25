@@ -393,18 +393,18 @@ int capture_frames(struct jpeg_frame *frame, struct camera_ctx *cctx, struct str
             perror("camera: Error converting YUYV to JPEG");
         }
 
-        // 3. Send JPEG frame to client
-        int ret = send_mjpeg_frame(frame, sctx);
-        if (ret < 0) {
-            // Check errno for more details if needed
-            fprintf(stderr, "Client disconnected or send error (ret=%d)\n", ret);
-            break;  // exit streaming loop
-        }
+        // // 3. Send JPEG frame to client
+        // int ret = send_mjpeg_frame(frame, sctx);
+        // if (ret < 0) {
+        //     // Check errno for more details if needed
+        //     fprintf(stderr, "Client disconnected or send error (ret=%d)\n", ret);
+        //     break;  // exit streaming loop
+        // }
 
-        // 4. Free allocated JPEG memory
-        free(frame->data);
-        frame->data = NULL;
-        frame->size = 0;
+        // // 4. Free allocated JPEG memory
+        // free(frame->data);
+        // frame->data = NULL;
+        // frame->size = 0;
         
         // 5. Requeue the buffer to be filled again
         if (ioctl(cctx->cam_fd, VIDIOC_QBUF, &cctx->buf) < 0){
