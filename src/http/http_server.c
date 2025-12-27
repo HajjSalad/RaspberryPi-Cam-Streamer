@@ -157,5 +157,6 @@ int send_mjpeg_http_header(struct stream_ctx *sctx)
 int handle_http_client(struct jpeg_frame *frame, struct camera_ctx *cctx, struct stream_ctx *sctx) 
 {
     // Now start sending frames
+    printf("http_server: Sending JPEG frames to client now...\n");
     return capture_frames(frame, cctx, sctx);
 }

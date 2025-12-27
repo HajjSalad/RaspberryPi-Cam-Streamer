@@ -75,6 +75,8 @@ int initialize_camera(struct camera_ctx *cctx)
     if (queue_buffers(cctx) < 0) goto error;
     if (start_stream(cctx) < 0) goto error;
 
+    printf("\n");
+
     return 0;
 
 error:
