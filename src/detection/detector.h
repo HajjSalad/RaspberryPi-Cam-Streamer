@@ -6,11 +6,21 @@
 * @brief 
 */
 
+#include <stdint.h>
+#define MAX_DETECTIONS      10
 
-struct detector_ctx {
-
+// Object detected in a single video frame
+struct person_detection {
+    bool       detected;           /**< Predicted object class */
+    float      confidence;       /**< Confidence score */
+    uint32_t   x;                  /**< X-coordinate of the bounding box */
+    unit32_t   y;                  /**< Y-coordinate of the bounding box */
+    unit32_t   width;              /**< Width of the bounding box (pixels) */
+    unit32_t   height;             /**< Height of the bounding box (pixels) */
 };
 
-struct draw_d
+void detector_init();
+void run_object_detection();
+void draw_detections();
 
 #endif  // DETECTOR_H

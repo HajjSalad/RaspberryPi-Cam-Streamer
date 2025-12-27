@@ -22,6 +22,10 @@ int image_processor(struct yuyv_frame *yuyv,
         goto cleanup;
     }
 
+    if (motion_detected) {
+        run_object_detection(&rgb, &result);
+    }
+
     // 2. RGB -> JPEG
     if (convert_rgb_to_jpeg(&rgb, jpeg) != 0) {
         perror("Error converting RGB to JPEG");
