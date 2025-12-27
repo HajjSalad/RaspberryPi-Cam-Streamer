@@ -22,8 +22,9 @@
 #include "camera/camera.h"
 #include "http/http_server.h"
 #include "http/mjpeg_stream.h"
-#include "jpeg/jpeg_encoder.h"
 #include "cb/circular_buffer.h"
+#include "image/image_encoder.h"
+#include "image/image_processor.h"
 
 #define THREAD_NUM      2
 #define SERVER_PORT     8080
@@ -48,6 +49,14 @@ sem_t semData;
 * entries in the multithreaded context.
 */
 pthread_mutex_t mutexBuffer;
+
+pipeline_ctx pipeline = {
+    .cb = &cb,
+    .mutex = &mutexBuffer,
+    .sem = &semData,
+    .cctx = &cctx,
+    .sctx = &sctx
+};
 
 /* Function Prototypes */
 static void* producer(void* args);
@@ -102,7 +111,7 @@ int main(void)
         // Alternate to create and start producer-consumer threads
         for (int i=0; i<THREAD_NUM; i++) {
             if (i % 2 == 0) {
-                if (pthread_create(&th[i], NULL, &producer, NULL) != 0) {
+                if (pthread_create(&th[i], NULL, &producer, &pipeline) != 0) {
                     perror("Failed to create producer thread");
                 }
             } else {
@@ -135,21 +144,15 @@ int main(void)
 }
 
 static void* producer(void* args) {
-    while(1) {
+    pipeline_ctx *pipeline = args;
+    capture_frames(pipeline->cctx, pipeline->sctx, pipeline);
 
-        capture_frames(frame, cctx, sctx);
-
-        // Add to the buffer
-        pthread_mutex_lock(&mutexBuffer);
-        cb_write(&cb, frame);                           // overwrite allowed
-        pthread_mutex_unlock(&mutexBuffer);
-
-        sem_post(&semData);                             // Signal availability
-    }
+    return NULL;
 }
 
 static void* consumer(void* args) {
     struct jpeg_frame *output;
+    pipeline_ctx *pipeline = args;
 
     while(1) {
         sem_wait(&semData);                     // BLOCK if no data
@@ -159,7 +162,7 @@ static void* consumer(void* args) {
         pthread_mutex_unlock(&mutexBuffer);
 
         //  Send JPEG frame to client
-        int ret = send_mjpeg_frame(output, sctx);
+        int ret = send_mjpeg_frame(output, pipeline->sctx);
         if (ret < 0) {
             // Check errno for more details if needed
             fprintf(stderr, "Client disconnected or send error (ret=%d)\n", ret);

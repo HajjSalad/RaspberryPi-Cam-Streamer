@@ -21,7 +21,9 @@
 
 // Forward declare the context structures
 struct stream_ctx;
+struct yuyv_frame;
 struct jpeg_frame;
+struct pipeline_ctx;
 
 /**
 * @brief Describes a single memory-mapped video buffer.
@@ -58,6 +60,6 @@ struct camera_ctx {
 /* Function Prototypes */
 int initialize_camera(struct camera_ctx *cctx);
 void close_camera(struct camera_ctx *cctx);
-int capture_frames(struct jpeg_frame *frame, struct camera_ctx *cctx, struct stream_ctx *sctx);
+int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe);
 
 #endif /* CAMERA_H */

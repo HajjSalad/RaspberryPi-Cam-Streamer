@@ -16,14 +16,14 @@ struct yuyv_frame {
     unsigned int width;     /**< Frame width in pixels */
     unsigned int height;    /**< Frame height in pixels */
     unsigned long size;     /**< Size in bytes (width * height * 2) */
-}
+};
 
 struct rgb_frame {
     unsigned char *data;    /**< Pointer to raw YUYV422 frame data */
     unsigned int width;     /**< Frame width in pixels */
     unsigned int height;    /**< Frame height in pixels */
     unsigned long size;     /**< Size in bytes (width * height * 3) */
-}
+};
 
 struct jpeg_frame {
     unsigned char* data;    /**< Pointer to JPEG-compressed image data */
@@ -31,13 +31,10 @@ struct jpeg_frame {
 };
 
 /* Function Prototypes*/
-void convert_yuyv_to_rgb(unsigned char* yuyv,
-                        int width,
-                        unsigned char* rgb);
-void convert_rgb_to_jpeg(unsigned char* rgb,
-                         int width,
-                         int height,
-                         struct jpeg_frame* frame);
+void convert_yuyv_to_rgb(const struct yuyv_frame *in,
+                         struct rgb_frame *out);
+void convert_rgb_to_jpeg(const struct rgb_frame *in,
+                         struct jpeg_frame *out);
 int convert_yuyv_to_jpeg(unsigned char *yuyv_data,
                          int width,
                          int height,

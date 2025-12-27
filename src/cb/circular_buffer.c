@@ -9,7 +9,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "circular_buffer.h"
+#include "image/image_encoder.h"
 
 /**
 * @brief Initialize the circular buffer
