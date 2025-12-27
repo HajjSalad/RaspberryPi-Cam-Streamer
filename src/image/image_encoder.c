@@ -1,9 +1,12 @@
 /**
-* @file jpeg_encoder.c
+* @file image_encoder.c
 * @brief JPEG encoder implementation for raw YUYV422 camera frames.
 *
-* Implements conversion of raw YUYV422 image buffers into JPEG-compressed
-* images using libjpeg.
+* Longer Desription
+*
+* Design and Implementation Notes on Notion: 
+*   https://www.notion.so/hajjsalad/Image-Encoding-2d4a741b5aab80a38e9dc18162f11671
+*
 */
 
 #include <stdio.h>   
@@ -11,7 +14,117 @@
 #include <setjmp.h>
 #include <jpeglib.h>   
 
-#include "jpeg_encoder.h"
+#include "image_encoder.h"
+
+/* Ensure value stays within 8-bit pixel range: [0, 255]  */
+#define CLIP(x) ((x) < 0 ? 0 : ((x) > 255 ? 255 : (x)))
+
+void convert_yuyv_to_rgb(unsigned char* yuyv,
+                        int width,
+                        unsigned char* rgb)
+{
+    /** 
+    * In each iteration:
+    *   - Process 2 pixels
+    *   - Consumes 4 bytes of YUYV
+    *   - Produces 6 bytes of RGB (2 pixels x 3 channels)
+    */
+    for (int x=0; x < width; x += 2) 
+    {
+        int y0 = yuyv[0];
+        int u = yuyv[1];
+        int y1 = yuyv[2];
+        int v = yuyv[3];
+
+        /**
+        u & v are initially stored as unsigned bytes, range: [0, 255]
+        - u = 128 -> no blue shift    (neutral chroma)
+        - v = 128 -> no red shift     (neutral chroma)
+        Subtract 128 to recenter chroma values:
+         original:    0 -> 255
+         Centered:  -128 -> +127    (neutral chroma at 0 now)
+        Result: d & e = signed color offsets
+            - Negative -> reduces color
+            - Positive -> increases color
+            - 0 -> no color contribution 
+        */ 
+        int d = u - 128;
+        int e = v - 128;
+
+        /** Pixel 0
+        Y is initially stored as unsigned byte, range: [0, 255]
+        BT.601 valid luma Range: [16, 235]
+            Y = 16 -> black
+            Y = 235 -> white
+            Subtract 16 to normalize so that black = 0
+        YUYV -> RGB Conversion equation:                                    -> Floating point is slow, scale by 256 to get integer
+            R = 1.164 * (Y - 16) + 1.596 * (V - 128)                        -> 298 * (Y - 16) + 409 * (V - 128)
+            G = 1.164 * (Y - 16) - 0.391 * (U - 128) - 0.813 * (V - 128)    -> 298 * (Y - 16) - 100 * (U - 128) - 208 * (V - 128)
+            B = 1.164 * (Y - 16) + 2.018 * (U - 128)                        -> 298 * (Y - 16) + 516 * (U - 128)
+        */
+        int c = y0 - 16; 
+        rgb[(x * 3) + 0] = CLIP((298*c + 409*e + 128) >> 8);            // Red
+        rgb[(x * 3) + 1] = CLIP((298*c - 100*d - 208*e + 128) >> 8);    // Green
+        rgb[(x * 3) + 2] = CLIP((298*c + 516*d + 128) >> 8);            // Blue
+
+        // Pixel 1
+        c = y1 - 16;
+        rgb[(x * 3) + 3] = CLIP((298*c + 409*e + 128) >> 8);
+        rgb[(x * 3) + 4] = CLIP((298*c - 100*d - 208*e + 128) >> 8);
+        rgb[(x * 3) + 5] = CLIP((298*c + 516*d + 128) >> 8);
+
+        yuyv += 4;
+    }
+}
+
+void convert_rgb_to_jpeg(unsigned char* rgb,
+                         int width,
+                         int height,
+                         struct jpeg_frame* frame) 
+{
+    struct jpeg_compress_struct cinfo;      // main JPEG compression object
+    struct jpeg_error_mgr jerr;             // Error manager struct used by libjpeg
+
+    // Link cinfo compression object to libjpeg internal error-handling system
+    cinfo.err = jpeg_std_error(&jerr);
+
+    // 1. Initializes the compressor, allocate internal memory and prep cinfo for compression
+    jpeg_create_compress(&cinfo);        
+
+    // 2. Set output destination to memory buffer
+    jpeg_mem_dest(&cinfo, &frame->data, &frame->size);
+
+    // 3. Image parameters
+    cinfo.image_width = width;
+    cinfo.image_height = height;
+    cinfo.input_components = 3;         // # of color components in input image (RGB = 3 channels)
+    cinfo.in_color_space = JCS_RGB;     // color space of input image (Input is RGB)
+
+    // 4. Default config
+    jpeg_set_defaults(&cinfo);          
+    jpeg_set_quality(&cinfo, 80, TRUE);         // 80 = good balance
+
+    // Start compressor
+    jpeg_start_compress(&cinfo, TRUE);       // TRUE = write full Q-tables and Huffman tables
+
+    // Each scanline is width * 3 bytes
+    while (cinfo.next_scanline < cinfo.image_height) {
+
+        JSAMPROW row_pointer[1];
+        row_pointer[0] = &rgb_data[cinfo.next_scanline * width * 3];
+
+        jpeg_write_scanlines(&cinfo, row_pointer, 1);
+    }
+
+    // Finish compression
+    jpeg_finish_compress(&cinfo);
+
+    // Cleanup
+    jpeg_destroy_compress(&cinfo);
+
+    return 0;
+}
+
 
 /**
 * @brief Convert a raw YUYV422 frame into a compressed JPEG image.
@@ -141,5 +254,4 @@ int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
 
     return 0;
 }
-
 

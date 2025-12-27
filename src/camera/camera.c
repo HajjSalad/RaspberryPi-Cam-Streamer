@@ -381,26 +381,36 @@ int capture_frames(struct jpeg_frame *frame, struct camera_ctx *cctx, struct str
             break;
         }
 
-        // 2. Convert YUYV to JPEG
-        if (convert_yuyv_to_jpeg(
+        // 2. Send frame for processing
+        if (image_processor(
                 cctx->buffers[cctx->buf.index].start,
                 cctx->fmt.fmt.pix.width,
                 cctx->fmt.fmt.pix.height,
                 frame
-            ) != 0) {
-            perror("camera: Error converting YUYV to JPEG");
+        ) != 0) {
+            perror("camera: Error sending frame for processing");
         }
 
-        // 3. Send PJEG frame to client
-        if (send_mjpeg_frame(frame, sctx) < 0) {
-            fprintf(stderr, "Client disconnected or send error.\n");
-            break;
-        }
+        // // 2. Convert YUYV to JPEG
+        // if (convert_yuyv_to_jpeg(
+        //         cctx->buffers[cctx->buf.index].start,
+        //         cctx->fmt.fmt.pix.width,
+        //         cctx->fmt.fmt.pix.height,
+        //         frame
+        //     ) != 0) {
+        //     perror("camera: Error converting YUYV to JPEG");
+        // }
 
-        // 4. Free allocated JPEG memory
-        free(frame->data);
-        frame->data = NULL;
-        frame->size = 0;
+        // // 3. Send PJEG frame to client
+        // if (send_mjpeg_frame(frame, sctx) < 0) {
+        //     fprintf(stderr, "Client disconnected or send error.\n");
+        //     break;
+        // }
+
+        // // 4. Free allocated JPEG memory
+        // free(frame->data);
+        // frame->data = NULL;
+        // frame->size = 0;
         
         // 5. Requeue the buffer to be filled again
         if (ioctl(cctx->cam_fd, VIDIOC_QBUF, &cctx->buf) < 0){
