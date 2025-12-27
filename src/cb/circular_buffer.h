@@ -29,7 +29,7 @@ typedef struct {
 
 // Function prototypes
 void circular_buffer_init(CircularBuffer *cb);
-void cb_write(CircularBuffer *cb, jpeg_frame* frame);
-bool cb_read(CircularBuffer *cb, jpeg_frame** frame);
+void cb_write(CircularBuffer *cb, struct jpeg_frame* frame);
+bool cb_read(CircularBuffer *cb, struct jpeg_frame** frame);
 
 #endif  // CIRCULAR_BUFFER_H

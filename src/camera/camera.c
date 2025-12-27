@@ -29,9 +29,10 @@
 #include <sys/ioctl.h>
 
 #include "camera.h"
-#include "http/mjpeg_stream.h"
-#include "jpeg/jpeg_encoder.h"
 #include "cam_stream_ioctl.h"
+#include "http/mjpeg_stream.h"
+#include "image/image_encoder.h"
+#include "image/image_processor.h"
 
 /** @brief Internal helper functions.  */
 static int open_control_device(struct camera_ctx *cctx);
@@ -369,7 +370,7 @@ static int start_stream(struct camera_ctx *cctx)
 *
 * @return 0 on success, negative value on error.
 */
-int capture_frames(struct jpeg_frame *frame, struct camera_ctx *cctx, struct stream_ctx *sctx) 
+int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, pipeline_ctx *pipe) 
 {
     for (;;) {
         // Prepare the buffer struct
@@ -383,30 +384,17 @@ int capture_frames(struct jpeg_frame *frame, struct camera_ctx *cctx, struct str
             break;
         }
 
-        // 2. Convert YUYV to JPEG
-        if (convert_yuyv_to_jpeg(
-                cctx->buffers[cctx->buf.index].start,
-                cctx->fmt.fmt.pix.width,
-                cctx->fmt.fmt.pix.height,
-                frame
-            ) != 0) {
-            perror("camera: Error converting YUYV to JPEG");
+        // Prepare YUYV frame
+        yuyv_frame->data = cctx->buffers[cctx->buf.index].start;
+        yuyv_frame->width = cctx->fmt.fmt.pix.width,
+        yuyv_frame->height = cctx->fmt.fmt.pix.height
+
+        // 2. Send frame for processing
+        if (image_processor(yuyv_frame, cctx, sctx, pipe) != 0) {
+            perror("camera: Error sending YUYV frame for processing");
         }
-
-        // // 3. Send JPEG frame to client
-        // int ret = send_mjpeg_frame(frame, sctx);
-        // if (ret < 0) {
-        //     // Check errno for more details if needed
-        //     fprintf(stderr, "Client disconnected or send error (ret=%d)\n", ret);
-        //     break;  // exit streaming loop
-        // }
-
-        // // 4. Free allocated JPEG memory
-        // free(frame->data);
-        // frame->data = NULL;
-        // frame->size = 0;
-        
-        // 5. Requeue the buffer to be filled again
+  
+        // 3. Requeue the buffer to be filled again
         if (ioctl(cctx->cam_fd, VIDIOC_QBUF, &cctx->buf) < 0){
             perror("camera: Failed to requeue buffer");
             break;
