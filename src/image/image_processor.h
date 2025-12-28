@@ -14,8 +14,9 @@ struct stream_ctx;
 struct yuyv_frame;
 struct rgb_frame;
 struct jpeg_frame;
+struct CircularBuffer;
 
-typedef struct {
+typedef struct pipeline_ctx {
     CircularBuffer *cb;
     pthread_mutex_t *mutex;
     sem_t *sem;

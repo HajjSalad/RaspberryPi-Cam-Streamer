@@ -19,9 +19,8 @@
 /* Ensure value stays within 8-bit pixel range: [0, 255]  */
 #define CLIP(x) ((x) < 0 ? 0 : ((x) > 255 ? 255 : (x)))
 
-void convert_yuyv_to_rgb(unsigned char* yuyv,
-                        int width,
-                        unsigned char* rgb)
+int convert_yuyv_to_rgb(const struct yuyv_frame *yuyv,
+                         struct rgb_frame *rgb)
 {
     /** 
     * In each iteration:
@@ -29,12 +28,12 @@ void convert_yuyv_to_rgb(unsigned char* yuyv,
     *   - Consumes 4 bytes of YUYV
     *   - Produces 6 bytes of RGB (2 pixels x 3 channels)
     */
-    for (int x=0; x < width; x += 2) 
+    for (int x=0; x < yuyv->width; x += 2) 
     {
-        int y0 = yuyv[0];
-        int u = yuyv[1];
-        int y1 = yuyv[2];
-        int v = yuyv[3];
+        int y0 = yuyv->data[0];
+        int u = yuyv->data[1];
+        int y1 = yuyv->data[2];
+        int v = yuyv->data[3];
 
         /**
         u & v are initially stored as unsigned bytes, range: [0, 255]
@@ -63,24 +62,23 @@ void convert_yuyv_to_rgb(unsigned char* yuyv,
             B = 1.164 * (Y - 16) + 2.018 * (U - 128)                        -> 298 * (Y - 16) + 516 * (U - 128)
         */
         int c = y0 - 16; 
-        rgb[(x * 3) + 0] = CLIP((298*c + 409*e + 128) >> 8);            // Red
-        rgb[(x * 3) + 1] = CLIP((298*c - 100*d - 208*e + 128) >> 8);    // Green
-        rgb[(x * 3) + 2] = CLIP((298*c + 516*d + 128) >> 8);            // Blue
+        rgb->data[(x * 3) + 0] = CLIP((298*c + 409*e + 128) >> 8);            // Red
+        rgb->data[(x * 3) + 1] = CLIP((298*c - 100*d - 208*e + 128) >> 8);    // Green
+        rgb->data[(x * 3) + 2] = CLIP((298*c + 516*d + 128) >> 8);            // Blue
 
         // Pixel 1
         c = y1 - 16;
-        rgb[(x * 3) + 3] = CLIP((298*c + 409*e + 128) >> 8);
-        rgb[(x * 3) + 4] = CLIP((298*c - 100*d - 208*e + 128) >> 8);
-        rgb[(x * 3) + 5] = CLIP((298*c + 516*d + 128) >> 8);
+        rgb->data[(x * 3) + 3] = CLIP((298*c + 409*e + 128) >> 8);
+        rgb->data[(x * 3) + 4] = CLIP((298*c - 100*d - 208*e + 128) >> 8);
+        rgb->data[(x * 3) + 5] = CLIP((298*c + 516*d + 128) >> 8);
 
-        yuyv += 4;
+        yuyv->data += 4;
     }
+    return 0;
 }
 
-void convert_rgb_to_jpeg(unsigned char* rgb,
-                         int width,
-                         int height,
-                         struct jpeg_frame* frame) 
+int convert_rgb_to_jpeg(const struct rgb_frame *rgb,
+                         struct jpeg_frame *jpeg)
 {
     struct jpeg_compress_struct cinfo;      // main JPEG compression object
     struct jpeg_error_mgr jerr;             // Error manager struct used by libjpeg
@@ -92,11 +90,11 @@ void convert_rgb_to_jpeg(unsigned char* rgb,
     jpeg_create_compress(&cinfo);        
 
     // 2. Set output destination to memory buffer
-    jpeg_mem_dest(&cinfo, &frame->data, &frame->size);
+    jpeg_mem_dest(&cinfo, &jpeg->data, &jpeg->size);
 
     // 3. Image parameters
-    cinfo.image_width = width;
-    cinfo.image_height = height;
+    cinfo.image_width = rgb->width;
+    cinfo.image_height = rgb->height;
     cinfo.input_components = 3;         // # of color components in input image (RGB = 3 channels)
     cinfo.in_color_space = JCS_RGB;     // color space of input image (Input is RGB)
 
@@ -111,7 +109,7 @@ void convert_rgb_to_jpeg(unsigned char* rgb,
     while (cinfo.next_scanline < cinfo.image_height) {
 
         JSAMPROW row_pointer[1];
-        row_pointer[0] = &rgb_data[cinfo.next_scanline * width * 3];
+        row_pointer[0] = &rgb->data[cinfo.next_scanline * rgb->width * 3];
 
         jpeg_write_scanlines(&cinfo, row_pointer, 1);
     }
@@ -207,9 +205,6 @@ int convert_yuyv_to_jpeg(unsigned char* yuyv_data,
             int u = yuyv[1];
             int y1 = yuyv[2];
             int v = yuyv[3];
-
-            // Convert YUV to RGB (BT.601 standard)
-            #define CLIP(x) ( (x)<0 ? 0 : ( (x)>255 ? 255 : (x) ) )
 
             int c = y0 - 16;
             int d = u - 128;

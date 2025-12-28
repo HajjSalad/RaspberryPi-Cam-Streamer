@@ -9,7 +9,7 @@
 
 #include "mjpeg_stream.h"
 #include "camera/camera.h"
-#include "jpeg/jpeg_encoder.h"
+#include "image/image_encoder.h"
 
 /**
 * @brief Send a single JPEG image as an MJPEG frame over an HTTP multipart stream.

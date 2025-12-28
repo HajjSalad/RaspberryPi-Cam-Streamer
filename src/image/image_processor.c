@@ -10,7 +10,7 @@
 int image_processor(struct yuyv_frame *yuyv, 
                     struct camera_ctx *cctx, 
                     struct stream_ctx *sctx,
-                    pipeline_ctx *pipe)
+                    struct pipeline_ctx *pipe)
 { 
     struct rgb_frame rgb = {0};
     struct jpeg_frame *jpeg = malloc(sizeof(*jpeg));

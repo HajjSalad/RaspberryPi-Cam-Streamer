@@ -50,14 +50,6 @@ sem_t semData;
 */
 pthread_mutex_t mutexBuffer;
 
-pipeline_ctx pipeline = {
-    .cb = &cb,
-    .mutex = &mutexBuffer,
-    .sem = &semData,
-    .cctx = &cctx,
-    .sctx = &sctx
-};
-
 /* Function Prototypes */
 static void* producer(void* args);
 static void* consumer(void* args);
@@ -70,6 +62,14 @@ int main(void)
     struct camera_ctx cctx = {0};               // Camera context (V4L2)
     struct stream_ctx sctx = {0};               // Streaming context (MJPEG)
     struct jpeg_frame frame = {0};              // JPEG-compressed frame buffer
+
+    pipeline_ctx pipeline = {
+        .cb = &cb,
+        .mutex = &mutexBuffer,
+        .sem = &semData,
+        .cctx = &cctx,
+        .sctx = &sctx
+    };
 
     pthread_t th[THREAD_NUM];                   // Create storage for thread IDs
 
@@ -170,8 +170,8 @@ static void* consumer(void* args) {
         }
 
         // Free allocated JPEG memory
-        free(frame->data);
-        frame->data = NULL;
-        frame->size = 0;
+        free(output->data);
+        output->data = NULL;
+        output->size = 0;
     }
 }

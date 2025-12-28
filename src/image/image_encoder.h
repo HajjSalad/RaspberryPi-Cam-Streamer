@@ -31,9 +31,9 @@ struct jpeg_frame {
 };
 
 /* Function Prototypes*/
-void convert_yuyv_to_rgb(const struct yuyv_frame *in,
+int convert_yuyv_to_rgb(const struct yuyv_frame *in,
                          struct rgb_frame *out);
-void convert_rgb_to_jpeg(const struct rgb_frame *in,
+int convert_rgb_to_jpeg(const struct rgb_frame *in,
                          struct jpeg_frame *out);
 int convert_yuyv_to_jpeg(unsigned char *yuyv_data,
                          int width,

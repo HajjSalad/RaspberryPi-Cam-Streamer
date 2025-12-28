@@ -370,7 +370,7 @@ static int start_stream(struct camera_ctx *cctx)
 *
 * @return 0 on success, negative value on error.
 */
-int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, pipeline_ctx *pipe) 
+int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe) 
 {
     for (;;) {
         // Prepare the buffer struct
@@ -386,8 +386,8 @@ int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, pipeline_ct
 
         // Prepare YUYV frame
         yuyv_frame->data = cctx->buffers[cctx->buf.index].start;
-        yuyv_frame->width = cctx->fmt.fmt.pix.width,
-        yuyv_frame->height = cctx->fmt.fmt.pix.height
+        yuyv_frame->width = cctx->fmt.fmt.pix.width;
+        yuyv_frame->height = cctx->fmt.fmt.pix.height;
 
         // 2. Send frame for processing
         if (image_processor(yuyv_frame, cctx, sctx, pipe) != 0) {
