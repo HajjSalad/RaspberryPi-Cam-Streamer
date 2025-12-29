@@ -8,13 +8,16 @@
 * 
 */
 
+#include <pthread.h>
+#include <semaphore.h>
+
 /* Forward declare structures */
 struct camera_ctx;
 struct stream_ctx;
 struct yuyv_frame;
 struct rgb_frame;
 struct jpeg_frame;
-struct CircularBuffer;
+typedef struct CircularBuffer CircularBuffer;
 
 typedef struct pipeline_ctx {
     CircularBuffer *cb;
@@ -27,7 +30,7 @@ typedef struct pipeline_ctx {
 int image_processor(struct yuyv_frame *yuyv, 
                     struct camera_ctx *cctx, 
                     struct stream_ctx *sctx,
-                    pipeline_ctx *pipe);
+                    struct pipeline_ctx *pipe);
 
 
 #endif      /* IMAGE_PROCESSOR_H */

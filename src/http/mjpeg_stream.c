@@ -5,11 +5,45 @@
 
 #include <stdio.h>     
 #include <unistd.h>    
-#include <stddef.h>     
+#include <stddef.h>    
+#include <stdlib.h> 
 
 #include "mjpeg_stream.h"
 #include "camera/camera.h"
+#include "http/http_server.h"
+#include "http/mjpeg_stream.h"
+#include "cb/circular_buffer.h"
 #include "image/image_encoder.h"
+#include "image/image_processor.h"
+
+// Stream coordinator
+int send_frames(struct camera_ctx *cctx, 
+                struct stream_ctx *sctx, 
+                struct pipeline_ctx *pipe) 
+{
+    struct jpeg_frame *jpeg = NULL;
+
+    pthread_mutex_lock(pipe->mutex);
+    cb_read(pipe->cb, &jpeg);
+    pthread_mutex_unlock(pipe->mutex);
+
+    if (!jpeg) { return -1; }
+
+    //  Send JPEG frame to client
+    int ret = send_mjpeg_frame(jpeg, sctx);
+    if (ret < 0) {
+        fprintf(stderr, "Client disconnected or send error (ret=%d)\n", ret);
+        free(jpeg->data);
+        free(jpeg);
+        return -1;
+    }
+
+    // Free allocated JPEG memory
+    free(jpeg->data);
+    free(jpeg);
+
+    return 0;
+}
 
 /**
 * @brief Send a single JPEG image as an MJPEG frame over an HTTP multipart stream.

@@ -62,7 +62,7 @@ static void cleanup_buffers(struct camera_ctx *cctx);
 *
 * @note This is part of the public camera API and is exposed via camera.h.
 */
-int initialize_camera(struct camera_ctx *cctx)
+int camera_init(struct camera_ctx *cctx)
 {
     memset(cctx, 0, sizeof(*cctx));
     cctx->cam_fd = -1;
@@ -370,7 +370,7 @@ static int start_stream(struct camera_ctx *cctx)
 *
 * @return 0 on success, negative value on error.
 */
-int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe) 
+int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipeline) 
 {
     for (;;) {
         // Prepare the buffer struct
@@ -378,19 +378,22 @@ int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipe
         cctx->buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         cctx->buf.memory =V4L2_MEMORY_MMAP;
 
-        // 1. Dequeue a frame buffer
+        // Dequeue a frame buffer
         if (ioctl(cctx->cam_fd, VIDIOC_DQBUF, &cctx->buf) < 0) {
             perror("camera: Failed to dequeue buffer");
             break;
         }
 
-        // Prepare YUYV frame
-        yuyv_frame->data = cctx->buffers[cctx->buf.index].start;
-        yuyv_frame->width = cctx->fmt.fmt.pix.width;
-        yuyv_frame->height = cctx->fmt.fmt.pix.height;
+        struct yuyv_frame yuyv = {0};
 
-        // 2. Send frame for processing
-        if (image_processor(yuyv_frame, cctx, sctx, pipe) != 0) {
+        // Prepare YUYV frame
+        yuyv.data = cctx->buffers[cctx->buf.index].start;
+        yuyv.width = cctx->fmt.fmt.pix.width;
+        yuyv.height = cctx->fmt.fmt.pix.height;
+        yuyv.size = yuyv.width * yuyv.height * 2;
+
+        // Send frame for processing
+        if (image_processor(&yuyv, cctx, sctx, pipeline) != 0) {
             perror("camera: Error sending YUYV frame for processing");
         }
   

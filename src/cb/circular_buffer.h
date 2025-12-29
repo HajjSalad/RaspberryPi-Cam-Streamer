@@ -21,7 +21,7 @@ struct jpeg_frame;
 * - head: index for writing new frames (producer position)
 * - tail: index for reading frames (consumer position)
 */
-typedef struct {
+typedef struct CircularBuffer{
     struct jpeg_frame* entries[BUFFER_SIZE];        // Array of pointers to frames
     uint32_t head;                                  // write index
     uint32_t tail;                                  // read index
