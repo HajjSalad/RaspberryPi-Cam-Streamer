@@ -58,7 +58,7 @@ struct camera_ctx {
 };
 
 /* Function Prototypes */
-int initialize_camera(struct camera_ctx *cctx);
+int camera_init(struct camera_ctx *cctx);
 void close_camera(struct camera_ctx *cctx);
 int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe);
 

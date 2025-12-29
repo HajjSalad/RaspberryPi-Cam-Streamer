@@ -2,7 +2,10 @@
 #define MJPEG_STREAM_H
 
 // Forward declare the context structures
+struct camera_ctx;
+struct stream_ctx;
 struct jpeg_frame;
+struct pipeline_ctx;
 
 /**
 * @brief Streaming context for MJPEG server.
@@ -14,14 +17,8 @@ struct stream_ctx {
     int client_fd;                 /**< Connected client socket */
 };
 
-/**
-* @brief Send JPEG image as MJPEG frame over an HTTP multipart stream.
-*
-* @param frame  Pointer to the JPEG image produced from YUYV data.
-* @param sctx   Pointer to structure context that contains client_fd.
-*
-* @return 0 on success, negative value on error.e
-*/
+// Function Prototypes
+int send_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe);
 int send_mjpeg_frame(struct jpeg_frame *frame, struct stream_ctx *sctx);
 
 #endif  // MJPEG_STREAM_H
