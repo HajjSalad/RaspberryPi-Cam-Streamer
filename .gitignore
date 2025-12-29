@@ -16,6 +16,7 @@ camera_client.c
 # Ignore User-space Binaries
 camera_client
 trigger_server
+test_tflite
 *.out
 *.exe
 *.raw

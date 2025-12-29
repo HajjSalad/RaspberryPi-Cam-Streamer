@@ -12,8 +12,11 @@ PWD := $(shell pwd)
 
 # --- User Program ---
 USER_PROG := camera_client
-USER_SRC := $(shell find ./src -name "*.c")
+USER_SRC := $(shell find ./src -name "*.c" -o -name "*.cpp")
 USER_INC := -I$(PWD)/src -I$(PWD)/kernel
+
+USER_CFLAGS += -std=c++17
+USER_LIBS   += -ltensorflow-lite -ljpeg
 
 all: module user
 
@@ -24,7 +27,7 @@ module:
 # Build user-space program
 user:
 	@echo "Building user-space program..."
-	gcc $(USER_SRC) $(USER_INC) -o $(USER_PROG) -ljpeg
+	g++ $(USER_CFLAGS) $(USER_SRC) $(USER_INC) -o $(USER_PROG) $(USER_LIBS)
 
 # Clean both kernel and user builds
 clean:
