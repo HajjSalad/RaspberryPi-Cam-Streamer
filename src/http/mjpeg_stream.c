@@ -27,7 +27,7 @@ int send_frames(struct camera_ctx *cctx,
     cb_read(pipe->cb, &jpeg);
     pthread_mutex_unlock(pipe->mutex);
 
-    if (!jpeg) { return -1; }
+    if (!jpeg) { return 0; }
 
     //  Send JPEG frame to client
     int ret = send_mjpeg_frame(jpeg, sctx);
