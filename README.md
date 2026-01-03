@@ -20,16 +20,6 @@ camera and GPIO-accessible LEDs, with minor adjustments for GPIO pin mapping and
 - Implements a complete V4L2 capture pipeline:
 - Open device
 - Close device
-
-## 📂 Repository Structure
-```
-📁 pi_live_stream/
-│   ├── camera_client.c       # User-space V4L2 streaming client
-│   ├── camera_client.h       # Client API (buffer mgmt, IOCTL commands)
-│   ├── cam_stream.c          # Kernel module (IOCTL + LEDs)
-│   ├── Makefile              # Builds kernel module + client
-│   └── README.md             # Documentation
-```
 ## ⚙️ Hardware
 - Raspberry Pi 5
 - Logitech C270 webcam
@@ -45,6 +35,49 @@ GPIO pins are configured in the kernel module:
 ```
 ---
 
+## 📂 Repository Structure
+```
+📁 pi_live_stream/
+│
+├── docs/                     # Doxygen-generated documentation
+│
+├── kernel/                   # Linux kernel module
+│   ├── cam_stream.c          # Character device + ioctl implementation
+│   ├── cam_stream_ioctl.h    # Shared ioctl interface (kernel ↔ user)
+│   └── Makefile              # Kernel module build rules
+│
+├── src/                      # User-space application
+│   ├── camera/               # V4L2 camera capture & buffer management
+│   │   ├── camera.c
+│   │   └── camera.h
+│   │
+│   ├── cb/                   # Lock-protected circular buffer
+│   │   ├── circular_buffer.c
+│   │   └── circular_buffer.h
+│   │
+│   ├── detection/            # Real-time object detection (TFLite)
+│   │   ├── detection.cpp
+│   │   ├── detection.h
+│   │   └── models/
+│   │       └── detect.tflite
+│   │
+│   ├── http/                 # HTTP server + MJPEG streaming
+│   │   ├── http_server.c
+│   │   ├── http_server.h
+│   │   ├── mjpeg_stream.c
+│   │   └── mjpeg_stream.h
+│   │
+│   ├── image/                # Image processing & encoding
+│   │   ├── image_encoder.c
+│   │   ├── image_encoder.h
+│   │   ├── image_processor.c
+│   │   └── image_processor.h
+│   │
+│   └── main.c                # Application entry point & thread orchestration
+│
+├── README.md                 # Project overview & usage
+└── Makefile                  # Builds kernel module and user-space client
+```
 
 
 
