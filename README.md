@@ -5,7 +5,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 
 [Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
 
-###🗝️ Key Features
+###🗝️ Key Features  
 ✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
 
 - Character device exposing camera and LED controls via IOCTL
