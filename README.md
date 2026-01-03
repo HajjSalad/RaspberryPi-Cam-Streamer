@@ -5,14 +5,14 @@ This project demonstrates end-to-end system design across kernel space and user 
 
 [Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
 
-### Key Features
-✅ **Custom Linux Kernel Module**  ([additional Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
+###🗝️ Key Features
+✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
 
 - Character device exposing camera and LED controls via IOCTL
 - Clean kernel ↔ user-space interface
 - Runtime camera status indication via GPIO
 
-✅ **V4L2-Based Camera Pipeline**  ([Additional Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929))
+✅ **V4L2-Based Camera Pipeline**  [Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929)
 
 - Camera configuration and format negotiation
 - Buffer allocation and memory mapping (MMAP)
@@ -23,42 +23,43 @@ This project demonstrates end-to-end system design across kernel space and user 
 - Consumer thread streams frames to HTTP clients
 - Lock-protected circular buffer
 
-✅ **MJPEG HTTP Streaming**  ([Additional notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00))
+✅ **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00)
 
 - Lightweight HTTP server
 - Multipart MJPEG streaming to browsers
 
-✅ **MJPEG HTTP Streaming**  ([Additional Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4))
+✅ **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4)
 - TensorFlow Lite inference on captured frames
 - Designed for edge deployment
 
-### Threading Model
+###🧶 Threading Model
 - Producer Thread
   - Continously capture frames using V4L2
   - Converts raw frames and pushes them into a circular buffer
   - Signals frame availability using a semaphore
 - Consumer Thread
   - Waits on the semaphore for available frames
-  - Sends JPEG frames to connected HTTP clients
-This design allows for producer to be started once and consumer be started per client.
+  - Retrieves JPEG frames from the circular buffer
+  - Streams JPEG frames to connected HTTP clients  
+This design allows for **producer thread** to run continously, while a new **consumer thread** is spawned per client.
 
-### High Level Flow
+###🏗️ High Level Flow
 - Place diagram here
 
-### ⚙️ Hardware
+###⚙️ Hardware
 - Raspberry Pi 5 - primary embedded platform for kernel and user-space execution
 - Logitech C270 USB webcam - V4L2-compatible video capture device
 - GPIO-connected RGB LED - real-time system status indication
   - RED: idle state or error condition
   - GREEN: active camera streaming
 
-### Build and Run
-`make module`: Build kernel module  
-`make user`: Build user-space app  
-`make`: Build both kernel module & user-space app  
-`sudo insmod kernel/cam_stream.ko`: Insert the kernel module  
-`sudo ./camera_client`: Run   
-`[http://192.168.1.185:8080/stream](http://192.168.1.185:8080/stream)`: Access stream from a browser  
+###🧱 Build and Run
+- `make module`: Build the kernel module  
+- `make user`: Build the user-space application  
+- `make`: Build both the kernel module & user-space application  
+- `sudo insmod kernel/cam_stream.ko`: Insert the kernel module  
+- `sudo ./camera_client`: Start the camera streaming application  
+- `http://<raspberry-pi-ip>/stream`: Open broswer and view the stream  
 
 ### 📂 Repository Structure
 ```
