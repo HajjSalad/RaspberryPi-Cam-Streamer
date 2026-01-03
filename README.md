@@ -34,7 +34,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 - Lightweight HTTP server
 - Multipart MJPEG streaming to browsers
 
-✅ **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4)
+✅ **Real-Time Object Detection**  [Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4)
 - TensorFlow Lite inference on captured frames
 - Designed for edge deployment
 ---
