@@ -40,7 +40,8 @@ This project demonstrates end-to-end system design across kernel space and user 
 - Consumer Thread
   - Waits on the semaphore for available frames
   - Retrieves JPEG frames from the circular buffer
-  - Streams JPEG frames to connected HTTP clients  
+  - Streams JPEG frames to connected HTTP clients   
+  
 This design allows for **producer thread** to run continously, while a new **consumer thread** is spawned per client.
 
 ### 🏗️ High Level Flow
