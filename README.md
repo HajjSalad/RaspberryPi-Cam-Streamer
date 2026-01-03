@@ -1,41 +1,66 @@
-## 📹 Embedded Camera Streaming System
-A complete embedded Linux project demonstrating device driver development, IOCTL-based LED control, and real-time camera streaming using the V4L2 subsytem.  
+## 📸 Real-Time Camera Streaming with Object Detection
+A real-time camera streaming system built on a Raspberry Pi that integrates a custom Linux kernel module, a multithreaded user-space capture pipeline, MJPEG HTTP streaming, and optional on-device object detection using TensorFlow Lite.
 
-The project consists of:
-- A **Linux kernel module** exposing custom IOCTL commands to toggle camera-status LEDs. 
-- A **user-space camera client** implementing a full V4L2 streaming pipeline: device configuration, buffer
-negotiation, mmap, queue/dequeue loop and frame capture.
-- A simple **ffplay pipeline** to view RAW video frames streamed from the camera client.  
+This project demonstrates end-to-end system design across kernel space and user space. It combines Linux interfaces (V4L2, IOCTL, MMAP) with concurrent data pipelines and computer vision inference.
 
-This project is designed for Raspberry Pi 5 hardware but can be adapted to other Linux platforms with a V4L2-compatible 
-camera and GPIO-accessible LEDs, with minor adjustments for GPIO pin mapping and device paths.
+[Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
 
-## 🚀 Project Features
-✅ **Kernel Module (`cam_stream.ko`)**
-- Implements a character device  
-- Exposes custom IOCTLs
-- AAA
+### Key Features
+✅ **Custom Linux Kernel Module**  ([additional Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
 
-✅ **User-space Camera Client (`camera_client`)**
-- Implements a complete V4L2 capture pipeline:
-- Open device
-- Close device
-## ⚙️ Hardware
-- Raspberry Pi 5
-- Logitech C270 webcam
-- Two RGB LEDs connected to GPIO:
-- RED LED -> Idle/error indication
-- GREEN LED -> Streaming active
+- Character device exposing camera and LED controls via IOCTL
+- Clean kernel ↔ user-space interface
+- Runtime camera status indication via GPIO
 
-GPIO pins are configured in the kernel module:
-```
-#define GPIO_BASE        571
-#define LED_RED_GPIO     (GPIO_BASE + 21)
-#define LED_GREEN_GPIO   (GPIO_BASE + 20)
-```
----
+✅ **V4L2-Based Camera Pipeline**  ([Additional Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929))
 
-## 📂 Repository Structure
+- Camera configuration and format negotiation
+- Buffer allocation and memory mapping (MMAP)
+- Continuous frame capture and re-queuing
+
+✅ **Multithreaded Producer-Consumer Architecture**
+- Producer thread captures frames from the camera
+- Consumer thread streams frames to HTTP clients
+- Lock-protected circular buffer
+
+✅ **MJPEG HTTP Streaming**  ([Additional notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00))
+
+- Lightweight HTTP server
+- Multipart MJPEG streaming to browsers
+
+✅ **MJPEG HTTP Streaming**  ([Additional Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4))
+- TensorFlow Lite inference on captured frames
+- Designed for edge deployment
+
+### Threading Model
+- Producer Thread
+  - Continously capture frames using V4L2
+  - Converts raw frames and pushes them into a circular buffer
+  - Signals frame availability using a semaphore
+- Consumer Thread
+  - Waits on the semaphore for available frames
+  - Sends JPEG frames to connected HTTP clients
+This design allows for producer to be started once and consumer be started per client.
+
+### High Level Flow
+- Place diagram here
+
+### ⚙️ Hardware
+- Raspberry Pi 5 - primary embedded platform for kernel and user-space execution
+- Logitech C270 USB webcam - V4L2-compatible video capture device
+- GPIO-connected RGB LED - real-time system status indication
+  - RED: idle state or error condition
+  - GREEN: active camera streaming
+
+### Build and Run
+`make module`: Build kernel module  
+`make user`: Build user-space app  
+`make`: Build both kernel module & user-space app  
+`sudo insmod kernel/cam_stream.ko`: Insert the kernel module  
+`sudo ./camera_client`: Run   
+`[http://192.168.1.185:8080/stream](http://192.168.1.185:8080/stream)`: Access stream from a browser  
+
+### 📂 Repository Structure
 ```
 📁 pi_live_stream/
 │
