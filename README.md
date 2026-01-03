@@ -5,7 +5,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 
 [Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
 
-###🗝️ Key Features  
+### 🗝️ Key Features  
 ✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
 
 - Character device exposing camera and LED controls via IOCTL
@@ -32,7 +32,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 - TensorFlow Lite inference on captured frames
 - Designed for edge deployment
 
-###🧶 Threading Model
+### 🧶 Threading Model
 - Producer Thread
   - Continously capture frames using V4L2
   - Converts raw frames and pushes them into a circular buffer
@@ -43,17 +43,17 @@ This project demonstrates end-to-end system design across kernel space and user 
   - Streams JPEG frames to connected HTTP clients  
 This design allows for **producer thread** to run continously, while a new **consumer thread** is spawned per client.
 
-###🏗️ High Level Flow
+### 🏗️ High Level Flow
 - Place diagram here
 
-###⚙️ Hardware
+### ⚙️ Hardware
 - Raspberry Pi 5 - primary embedded platform for kernel and user-space execution
 - Logitech C270 USB webcam - V4L2-compatible video capture device
 - GPIO-connected RGB LED - real-time system status indication
   - RED: idle state or error condition
   - GREEN: active camera streaming
 
-###🧱 Build and Run
+### 🧱 Build and Run
 - `make module`: Build the kernel module  
 - `make user`: Build the user-space application  
 - `make`: Build both the kernel module & user-space application  
