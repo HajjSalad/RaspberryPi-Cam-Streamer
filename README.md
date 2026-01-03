@@ -47,9 +47,9 @@ This design allows for **producer thread** to run continously, while a new **con
 - Place diagram here
 ---
 ### ⚙️ Hardware
-- Raspberry Pi 5 - primary embedded platform for kernel and user-space execution
-- Logitech C270 USB webcam - V4L2-compatible video capture device
-- GPIO-connected RGB LED - real-time system status indication
+- **Raspberry Pi 5** - primary embedded platform for kernel and user-space execution
+- **Logitech C270 USB webcam** - V4L2-compatible video capture device
+- **GPIO-connected RGB LED** - real-time system status indication
   - RED: idle state or error condition
   - GREEN: active camera streaming
 
