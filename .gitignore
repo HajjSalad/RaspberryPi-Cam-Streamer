@@ -17,6 +17,7 @@ camera_client.c
 camera_client
 trigger_server
 test_tflite
+test_detector
 *.out
 *.exe
 *.raw
