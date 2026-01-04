@@ -51,7 +51,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 This design allows for **producer thread** to run continously, while a new **consumer thread** is spawned per client.
 
 ### 🏗️ High Level Flow
-- Place diagram here
+![Block Diagram](./Pi_cam_stream_Block_diagram.png)
 ---
 ### ⚙️ Hardware
 - **Raspberry Pi 5** - primary embedded platform for kernel and user-space execution
