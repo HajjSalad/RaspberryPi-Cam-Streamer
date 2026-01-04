@@ -14,11 +14,11 @@ struct detection_ctx {
 };
 
 // Function Prototypes
-void detector_init(struct detector_ctx *dctx);
-void run_object_detection(struct detector_ctx *dctx);
-void draw_detections(unsigned char *rgb,
-                     int width,
-                     int height,
-                    struct detection_result *result);
+int detector_init(struct detection_ctx *dctx);
+// void run_object_detection(struct detector_ctx *dctx);
+// void draw_detections(unsigned char *rgb,
+//                      int width,
+//                      int height,
+//                     struct detection_result *result);
 
 #endif  // DETECTOR_H

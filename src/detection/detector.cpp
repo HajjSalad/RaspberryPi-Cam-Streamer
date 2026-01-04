@@ -3,10 +3,15 @@
 * @brief 
 */
 
+#include <cstdio>
+#include <memory>
+#include <cstring>
+
 #include "detector.h"
 
 #include <tensorflow/lite/model.h>
 #include <tensorflow/lite/interpreter.h>
+#include <tensorflow/lite/kernels/register.h>
 
 #define MODEL_PATH  "models/detect.tflite"
 
@@ -19,7 +24,7 @@
 *   - Allocates input/output tensors
 */
 // Usage example: line 87 /usr/include/tensorflow/lite/core/interpreter.h
-int detector_init(struct detector_ctx *dctx)
+int detector_init(struct detection_ctx *dctx)
 {
     // Load .tflite model 
     auto model = tflite::FlatBufferModel::BuildFromFile(MODEL_PATH);
@@ -37,9 +42,9 @@ int detector_init(struct detector_ctx *dctx)
     // Create an instance named resolver of the class BuiltinOpResolver, which lives in the namespace tflite::ops::builtin
     // It maps operator IDs in the model (ex. CONV_2D, ADD) to concrete kernel implementations (CPU code)
     // The model says: “I need a CONV_2D”, The resolver answers: “Here’s the function that runs CONV_2D”
-    tflite::ops::builtin:BuiltinOpResolver resolver;
+    tflite::ops::builtin::BuiltinOpResolver resolver;
     // Declare a smart pointer that can own an instance of an interpreter later
-    std::unique_ptr<tflite::Interprete> interpeter;
+    std::unique_ptr<tflite::Interpreter> interpreter;
 
     /**InterpreterBuilder inspects the model graph
         It asks the resolver for kernels
@@ -62,7 +67,7 @@ int detector_init(struct detector_ctx *dctx)
     *   - Finalizes tensor shapes
     * Must be called before Invoke()
     */
-    if (interpreter->AllocateTensors() != kfLiteOk) {
+    if (interpreter->AllocateTensors() != kTfLiteOk) {
         printf("detector: Failed to allocate tensors\n");
         return -1;
     }
@@ -83,13 +88,13 @@ int detector_init(struct detector_ctx *dctx)
     printf("    Type: %d\n", tensor->type);
     printf("    Dims: ");
 
-    for (int i=0; i < tensor->dims-size; i++) {
+    for (int i=0; i < tensor->dims->size; i++) {
         printf("%d ", tensor->dims->data[i]);
     }
     printf("\n");
 
     // Feed fake frame for test
-    uint8_t *input_data = interp->typed_input_tensor<uint8_t>(0);
+    uint8_t *input_data = interp->typed_input_tensor<uint8_t> (0);
     size_t input_bytes = tensor->bytes;
 
     // Fill with zeros
@@ -108,20 +113,20 @@ int detector_init(struct detector_ctx *dctx)
 
 // Ran per frame 
 // Returns detection results (boxes + labels)
-void run_object_detection()
-{
+// void run_object_detection()
+// {
     
-}
+// }
 
-/** Draw the overlying Bounding Boxes
-*   - Draws rectangles
-*   - Optionally draws labels
-*   - Modifies RGB buffer in-place
-*/
-void draw_detections(unsigned char *rgb,
-                     int width,
-                     int height,
-                    struct detection_result *result)
-{
+// /** Draw the overlying Bounding Boxes
+// *   - Draws rectangles
+// *   - Optionally draws labels
+// *   - Modifies RGB buffer in-place
+// */
+// void draw_detections(unsigned char *rgb,
+//                      int width,
+//                      int height,
+//                     struct detection_result *result)
+// {
 
-}
+// }
