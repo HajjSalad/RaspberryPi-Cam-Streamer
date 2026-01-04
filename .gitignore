@@ -23,11 +23,13 @@ trigger_server
 # Ignore Build and Temporary Files
 /build/
 /dist/
-/tmp/
-/docs           # Generated temporarily. CI copies docs into gh-pages/docs
+/tmp/  
 /*.bak
 *.lo
 trigger_server.py
+
+# Generated temporarily. CI copies docs into gh-pages/docs
+/docs  
 
 # Ignore Editor / System Files
 *.swp
