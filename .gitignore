@@ -24,6 +24,7 @@ trigger_server
 /build/
 /dist/
 /tmp/
+/docs           # Generated temporarily. CI copies docs into gh-pages/docs
 /*.bak
 *.lo
 trigger_server.py
