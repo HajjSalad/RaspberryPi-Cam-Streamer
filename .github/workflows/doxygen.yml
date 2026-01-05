@@ -30,7 +30,9 @@ jobs:
         run: |
           mv docs/html/* docs/
           rm -rf docs/html
-          touch docs/.nojekyll
+      
+      - name: Disable Jekyll processing
+        run: touch docs/.nojekyll
       
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
