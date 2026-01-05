@@ -10,7 +10,7 @@ on:
 permissions:
   contents: write
 
-# Job definition
+# Job definition. 
 jobs:
   build-docs:
     runs-on: ubuntu-latest
