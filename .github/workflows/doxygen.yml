@@ -24,6 +24,13 @@ jobs:
       
       - name: Generate Documentation
         run: doxygen Doxyfile
+
+      # Explanation for this move in the footer*
+      - name: Prepare docs for GitHub Pages
+        run: |
+          mv docs/html/* docs/
+          rm -rf docs/html
+          touch docs/.nojekyll
       
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -31,3 +38,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs             # directory publishing from
           destination_dir: docs           # target directiry in gh-pages
+
+
+# Explanation for the move above
+# Expected layout for GitHub pages: gh-pages/docs/index.html
+# Layout from the Doxygen Deployment: gh-pages/docs/hmtl/index.html -> too deep
+# So move docs/hmtl/* to docs/ -> so that we have: gh-pages/docs/index.html
