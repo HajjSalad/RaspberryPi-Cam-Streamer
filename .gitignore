@@ -30,6 +30,7 @@ trigger_server.py
 
 # Generated temporarily. CI copies docs into gh-pages/docs
 /docs  
+docs/
 
 # Ignore Editor / System Files
 *.swp

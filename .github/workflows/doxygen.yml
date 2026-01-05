@@ -1,1 +1,32 @@
-# Codes here
+name: Generate and Deploy Doxygen Docs
+
+# workflow trigger
+on:
+  push:
+    branches:
+      - main
+
+# Allow workflow to push to gh-pages
+permissions:
+  contents: write
+
+# Job definition
+jobs:
+  build-dcos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository         # Pulls source code into the runner
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+      
+      - name: Generate Documentation
+        run: doxygen Doxyfile
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrest.GITHUB_TOKEN }}
+          publish_dir: docs/html
