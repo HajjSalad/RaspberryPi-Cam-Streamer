@@ -39,7 +39,7 @@ jobs:
           publish_dir: ./docs             # directory publishing from
           destination_dir: docs           # target directiry in gh-pages
 
-
+ 
 # Explanation for the move above
 # Expected layout for GitHub pages: gh-pages/docs/index.html
 # Layout from the Doxygen Deployment: gh-pages/docs/hmtl/index.html -> too deep
