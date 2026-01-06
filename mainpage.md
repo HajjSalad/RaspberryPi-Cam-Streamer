@@ -1,0 +1,5 @@
+/** @mainpage
+
+@include README.md
+
+*/
