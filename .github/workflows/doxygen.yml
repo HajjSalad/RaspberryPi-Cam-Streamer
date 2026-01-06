@@ -34,4 +34,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs             # directory publishing from
           destination_dir: .
+          force_orphan: true
 
