@@ -5,7 +5,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 
 [Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
 
-### 🌿 Branches
+### 🌿 Branches and 📑 Documentation
 - `main` - Stable, fully integrated version of the project
 - `stream` - Core camera capture and MJPEG streaming pipeline
 - `stream_detect` - Streaming pipeline with on-device object detection
