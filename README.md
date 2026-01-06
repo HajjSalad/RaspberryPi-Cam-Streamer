@@ -11,7 +11,8 @@ This project demonstrates end-to-end system design across kernel space and user 
 - `stream_detect` - Streaming pipeline with on-device object detection
 - `gh-pages` - Generated documentation hosted via github pages
 
-Doxygen Documentation comes here!
+The project includes **comprehensive Doxygen Documentation** covering modules, functions, classes, and detailed usage. 
+Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)
 
 ### 🗝️ Key Features  
 ✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
