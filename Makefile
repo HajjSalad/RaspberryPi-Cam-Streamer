@@ -21,7 +21,7 @@ all: module user
 module:
 	$(MAKE) -C $(KDIR) M=$(PWD)/kernel modules
 
-# Build user-space program
+# Build user-space application
 user:
 	@echo "Building user-space program..."
 	gcc $(USER_SRC) $(USER_INC) -o $(USER_PROG) -ljpeg

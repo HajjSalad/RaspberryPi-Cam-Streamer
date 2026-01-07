@@ -37,8 +37,7 @@
 /* -------------------------------------------------------------------------- */
 MODULE_LICENSE("GPL");              /**< Kernel module license. */
 MODULE_AUTHOR("Hajj Smirky");       /**< Author. */
-MODULE_DESCRIPTION("Wrapper driver for Camera Streaming"); /**< Short description */
-
+MODULE_DESCRIPTION("Character driver exposign IOCTL-based GPIO LED indicators for camera streaming state"); /**< Short description */
 
 /* -------------------------------------------------------------------------- */
 /*                        Module State Variables                              */
@@ -63,7 +62,7 @@ static struct gpio_desc *red_led;
 static struct gpio_desc *green_led;
 
 /**
-* @brief Open the camera stream device.
+* @brief Open the cam_stream device.
 *
 * This function is invoked when a user space program opens the device node 
 * '/dev/cam_stream'. It logs that the device has been opened.
@@ -71,7 +70,7 @@ static struct gpio_desc *green_led;
 * @param inode Pointer to the inode structure representing the device file.
 * @param file Pointer to the file structure for the opened device.
 *
-* @return int 0 on success.
+* @return int 0 on success
 */
 static int cam_stream_open(struct inode *inode, struct file *file) 
 {
@@ -80,7 +79,7 @@ static int cam_stream_open(struct inode *inode, struct file *file)
 }
 
 /**
-* @brief Release the camera stream device.
+* @brief Release the cam_stream device.
 *
 * This function is invoked when a user space process closes the device node
 * '/dev/cam_stream'. It logs that the device has been released.
@@ -88,7 +87,7 @@ static int cam_stream_open(struct inode *inode, struct file *file)
 * @param inode Pointer to the inode structure representing the device file.
 * @param file Pointer to the file structure for the device being closed.
 *
-* @return int 0 on success.
+* @return int 0 on success
 */
 static int cam_stream_release(struct inode *inode, struct file *file) 
 {
@@ -134,24 +133,24 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
                 gpiod_set_value(green_led, 0);      // Turn on GREEN
                 printk(KERN_INFO "cam_stream ioctl: LED is GREEN\n");
             } else {
-                printk(KERN_INFO "cam_stream ioctl: LED is GREEN (simulated)\n");
+                printk(KERN_INFO "cam_stream ioctl: LED is GREEN (Simulated - GPIO not ready)\n");
             }
             break;
         case CAM_IOC_STOP:
             printk(KERN_INFO "cam_stream ioctl: STOP command received\n");
             if (gpio_ready) {
-                gpiod_set_value(green_led, 1);
-                gpiod_set_value(red_led, 0);
+                gpiod_set_value(green_led, 1);      // Turn off GREEN
+                gpiod_set_value(red_led, 0);        // Turn on RED
                 printk(KERN_INFO "cam_stream ioctl: LED is RED\n\n");
             } else {
-                printk(KERN_INFO "cam_stream ioctl: LED is RED (simulated)\n");
+                printk(KERN_INFO "cam_stream ioctl: LED is RED (Simulated - GPIO not ready)\n");
             }
             break;
         case CAM_IOC_RESET:
             printk(KERN_INFO "cam_stream ioctl: RESET command received\n");
             if (gpio_ready) {
-                gpiod_set_value(green_led, 0);      // Turn both RED and GREEN on
-                gpiod_set_value(red_led, 0);
+                gpiod_set_value(green_led, 0);      // Turn on RED
+                gpiod_set_value(red_led, 0);        // Turn on GREEN -> Turn on both RED + GREEN = YELLOW
                 printk(KERN_INFO "cam_stream ioctl: LED is YELLOW\n");
             } else {
                 printk(KERN_INFO "cam_stream ioctl: LED is YELLOW - RESET (simulated)\n");
@@ -168,7 +167,7 @@ static long cam_stream_ioctl(struct file *file, unsigned int cmd, unsigned long 
 *
 * This structure defines the set of operations that the kernel will invoke when a 
 * user-space process interactes with the /dv/cam_stream device. It links system calls
-* like open(), release(), and ioctl() to the corresponding function in this driver.
+* open(), release(), and ioctl() to the corresponding function in this driver.
 */
 static struct file_operations fops = {
     .owner = THIS_MODULE,
@@ -185,11 +184,11 @@ static struct file_operations fops = {
 * interaction.
 *
 * The initialization sequence includes:
-*   - Allocating a dynamic major device number.
-*   - Creating a device class entry under /sys/class/.
-*   - Creating the device node /dev/cam_stream.
-*   - Acquiring GPIO descriptors for the RED and GREEN LEDs.
-*   - Configuring both LEDS as output and setting the initial LED state.
+*   1. Allocating a dynamic major device number.
+*   2. Creating a device class entry under /sys/class/.
+*   3. Creating the device node /dev/cam_stream.
+*   4. Acquiring GPIO descriptors for the RED and GREEN LEDs.
+*   5. Configuring both LEDS as output and setting the initial LED state.
 *
 * If any step fails, the function performs appropriate cleanup and returns an error code,
 * preventing the driver from loading in a partially initialized state.
@@ -201,7 +200,7 @@ static int __init my_init(void)
 {
     int status_red, status_green;
 
-    printk(KERN_INFO "cam_stream init: Initializing\n");
+    printk(KERN_INFO "cam_stream init: Initializing...\n");
 
     // 1. Allocate a major number dynamically
     major = register_chrdev(0, "cam_stream", &fops);
@@ -219,7 +218,7 @@ static int __init my_init(void)
         return PTR_ERR(cls);
     }
 
-    // 3. Create the Device Node (/dev/my_cam_stream)
+    // 3. Create the Device Node (/dev/cam_stream)
     dev = device_create(cls, NULL, MKDEV(major, 0), NULL, "cam_stream");
     if (IS_ERR(dev)) {
         class_destroy(cls);
@@ -236,23 +235,23 @@ static int __init my_init(void)
         printk(KERN_WARNING "cam_stream init: Failed to add to descriptor one or both GPIOs (RED:%d, GREEN:%d)\n", LED_RED_GPIO, LED_GREEN_GPIO);
         gpio_ready = false;
 
-        // Clean up any that succeeded
-        if (!red_led)
-            gpio_free(LED_RED_GPIO);
-        if (!green_led)
-            gpio_free(LED_GREEN_GPIO);
+        // Release any GPIO descriptors that were successfully acquired
+        if (red_led)
+            gpiod_put(red_led);
+        if (green_led)
+            gpiod_put(green_led);
 
     } else {      
+
+        // 5. Configure LEDs as output and set the initial LED state (OFF)
         status_red = gpiod_direction_output(red_led, 1);
         status_green = gpiod_direction_output(green_led, 1);
 
         if (status_red || status_green) {
-            printk(KERN_INFO "cam_stream init: Error setting GPIO %d or %d to output\n", 
-                LED_RED_GPIO, LED_GREEN_GPIO);
+            printk(KERN_INFO "cam_stream init: Error setting GPIO %d or %d to output\n", LED_RED_GPIO, LED_GREEN_GPIO);
         }
 
-        printk(KERN_INFO "cam_stream init: GPIO %d (RED) and %d (GREEN) initialized for LED\n", 
-            LED_RED_GPIO, LED_GREEN_GPIO);
+        printk(KERN_INFO "cam_stream init: GPIO %d (RED) and %d (GREEN) initialized for LED\n", LED_RED_GPIO, LED_GREEN_GPIO);
         gpio_ready = true;
 
         // RED LED is the default at the start
@@ -272,21 +271,23 @@ static int __init my_init(void)
 * consistent state.
 *
 * The cleanup steps include:
-*   - Restoring LED GPIOs to their default (inactive) state.
-*   - Releasing GPIO descriptors if they were successfully acquired.
-*   - Destroying the /dev/cam_stream device node.
-*   - Destroying the device class created under /sys/class.
-*   - Unregistering the dynamically allocated major nuymber.
+*   1. Restoring LED GPIOs to their default (inactive) state.
+*   2. Releasing GPIO descriptors if they were successfully acquired.
+*   3. Destroying the /dev/cam_stream device node.
+*   4. Destroying the device class created under /sys/class.
+*   5. Unregistering the dynamically allocated major number.
 */
 static void __exit my_exit(void) 
 {
-    printk(KERN_INFO "cam_stream exit: Exiting\n");
+    printk(KERN_INFO "cam_stream exit: Exiting...\n");
 
     if (gpio_ready) {
-        gpiod_set_value(red_led, 1);    // Reset the logic value of the GPIO to 0
+        // 1. Reset the GPIO to inactive state (1 = inactive, 0 = active)
+        gpiod_set_value(red_led, 1);    
         gpiod_set_value(green_led, 1);    
 
-        gpiod_put(red_led);            // Release the GPIO resource
+        // 2. Release the GPIO descriptors
+        gpiod_put(red_led);            
         gpiod_put(green_led); 
 
         printk(KERN_INFO "cam_stream exit: GPIO Resources released");
@@ -294,13 +295,18 @@ static void __exit my_exit(void)
         printk(KERN_INFO "cam_stream exit: No GPIO Resources to release");
     }
 
+    // 3. Destroy device node
     device_destroy(cls, MKDEV(major, 0));
+
+    // 4. Destroy device class
     class_destroy(cls);
+
+    // 5. Unregister major number
     unregister_chrdev(major, "cam_stream");
 
     printk(KERN_INFO "cam_stream exit: Unloaded successfully\n\n");
 }
 
-/* Module initialization and cleanup callbacks*/
+/* Module initialization and cleanup callbacks */
 module_init(my_init);
 module_exit(my_exit);

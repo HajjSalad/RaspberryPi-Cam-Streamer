@@ -119,12 +119,3 @@ This design allows for **producer thread** to run continously, while a new **con
 ├── README.md                 # Project overview & usage
 └── Makefile                  # Builds kernel module and user-space client
 ```
-
-
-
-
-
-
-
-
-
