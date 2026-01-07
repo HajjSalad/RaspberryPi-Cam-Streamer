@@ -15,7 +15,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 The project includes **comprehensive Doxygen documentation** covering:
 - Modules
 - Functions
-- Classes and detailed usage      
+- Classes and detailed usage    
 
   👉 Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)
 
