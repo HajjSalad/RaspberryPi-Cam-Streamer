@@ -24,7 +24,7 @@ all: module user
 module:
 	$(MAKE) -C $(KDIR) M=$(PWD)/kernel modules
 
-# Build user-space program
+# Build user-space application
 user:
 	@echo "Building user-space program..."
 	g++ $(USER_CFLAGS) $(USER_SRC) $(USER_INC) -o $(USER_PROG) $(USER_LIBS)

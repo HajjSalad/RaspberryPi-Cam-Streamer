@@ -71,7 +71,9 @@ int main(void)
     struct camera_ctx cctx = {0};               // Camera context (V4L2)
     struct stream_ctx sctx = {0};               // Streaming context (MJPEG)
 
-    pthread_t th[THREAD_NUM];                   // Create storage for thread IDs
+    pthread_t producer_th;                      // Create storage for the thread
+    pthread_t consumer_th;
+
     pthread_mutex_init(&mutexBuffer, NULL);     // Initialize the mutex
     sem_init(&semData, 0, 0);                   // Initialize the semphore
 
@@ -89,7 +91,13 @@ int main(void)
         return -1;
     }
 
-    // 2. Start HTTP server (bind to port 8080)
+    // 2. Start Producer Thread ONCE
+    if (pthread_create(&producer_th, NULL, &producer, &pipeline) != 0) {
+        perror("Failed to create producer thread");
+        return -1;
+    }
+
+    // 3. Start HTTP server (bind to port 8080)
     if (start_http_server(&sctx, SERVER_PORT) < 0) {
         fprintf(stderr, "main: Failed to start http server.\n");
         close_camera(&cctx);
@@ -97,42 +105,32 @@ int main(void)
     }
     printf("main: HTTP server listening on port %d\n", SERVER_PORT);
 
-    // 3. Main server loop
+    // 4. Main server loop
     while(1) {
         printf("main: Waiting for a client...\n\n");
 
-        // 3a. Accept a browser connection
+        // 4a. Accept a browser connection
         if (accept_client_connection(&sctx) < 0) {
             fprintf(stderr, "main: Failed to accept client.\n");
             continue;       // keep server alive
         }
 
-        // 3b. Send HTTP multipart header
+        // 4b. Send HTTP multipart header
         if (send_mjpeg_http_header(&sctx) < 0) {
             fprintf(stderr, "main: Failed to send multipart header.\n");
             close(sctx.client_fd);
             continue;
         }
 
-        // Alternate to create and start producer-consumer threads
-        for (int i=0; i<THREAD_NUM; i++) {
-            if (i % 2 == 0) {
-                if (pthread_create(&th[i], NULL, &producer, &pipeline) != 0) {
-                    perror("Failed to create producer thread");
-                }
-            } else {
-                if (pthread_create(&th[i], NULL, &consumer, &pipeline) != 0) {
-                    perror("Failed to create consumer thread");
-                }
-            }
-        } 
-
-        // Join the threads
-        for (int i=0; i<THREAD_NUM; i++) {
-            if (pthread_join(th[i], NULL) != 0) {
-                perror("Failed to join the threads");
-            }
+        // 4c. Start Consumer thread
+        if (pthread_create(&consumer_th, NULL, &consumer, &pipeline) != 0) {
+            perror("Failed to create consumer thread");
+            close(sctx.client_fd);
+            continue;
         }
+
+        // Wait ONLY for consumer 
+        pthread_join(consumer_th, NULL);
 
         printf("main: Client disconnected.\n\n");
 
@@ -141,8 +139,7 @@ int main(void)
     }
 
     /* Close the camera and release resources */
-    close_camera(&cctx);
-    close(sctx.server_fd);
+    pthread_join(producer_th, NULL);                // Join producer thread
     sctx.server_fd = -1;
     sem_destroy(&semData);
     pthread_mutex_destroy(&mutexBuffer);
