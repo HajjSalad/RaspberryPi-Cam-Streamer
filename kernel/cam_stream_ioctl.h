@@ -7,8 +7,7 @@
 * @file cam_stream_ioctl.h
 * @brief Shared IOCTL definitions for cam_stream kernel module and userspace.
 *
-* Provides the IOCTL command codes used by both the kernel module and the userspace
-* application.
+* Provides the IOCTL command codes used by both the kernel module and the userspace application.
 */
 
 /** @brief Magic number for IOCTL commands */
