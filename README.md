@@ -1,4 +1,4 @@
-## 🎞️ Development Branch
+## 🎞️ Development Branch - Stream
 This branch contains implementation-specific development work.
 
 - `stream` branch - Core MJPEG streaming pipeline.
