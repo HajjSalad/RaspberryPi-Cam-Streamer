@@ -23,6 +23,7 @@ trigger_server
 # Ignore Build and Temporary Files
 /build/
 /dist/
+docs/
 /tmp/
 /*.bak
 *.lo
