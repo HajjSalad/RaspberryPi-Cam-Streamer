@@ -22,9 +22,11 @@ The project includes **comprehensive Doxygen documentation** covering:
 ### 🗝️ Key Features  
 ✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
 
-- Character device exposing camera and LED controls via IOCTL
-- Clean kernel ↔ user-space interface
-- Runtime camera status indication via GPIO
+- Character device driver exposing camera control and LED status signaling via `ioctl`
+- Well-defined kernel ↔ user-space interface with minimal surface area
+- GPIO-driven LED indicators reflecting real-time camera streaming state
+
+`GPIO` · `IOCTL` · `Character device` · `Linux kernel` · `kernel ↔ user space interface`
 
 ✅ **V4L2-Based Camera Pipeline**  [Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929)
 

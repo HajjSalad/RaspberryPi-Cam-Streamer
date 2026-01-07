@@ -1,1 +1,2 @@
+# Keep current branch's README during merges
 README.md merge=ours
