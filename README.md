@@ -5,19 +5,19 @@ This project demonstrates end-to-end system design across kernel space and user 
 
 [Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
 
-### 🌿 Branches and 
+### 🌿 Branches 
 - `main` - Stable, fully integrated version of the project
 - `stream` - Core camera capture and MJPEG streaming pipeline
 - `stream_detect` - Streaming pipeline with on-device object detection
 - `gh-pages` - Generated documentation hosted via github pages
 
-### 📜 Documentation
+### 📝 Documentation
 The project includes **comprehensive Doxygen documentation** covering:
 - Modules
 - Functions
-- Classes and detailed usage      
+- Classes and detailed usage    
 
-  👉 Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)
+👉 Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)
 
 ### 🗝️ Key Features  
 ✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
