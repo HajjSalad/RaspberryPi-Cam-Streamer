@@ -2,18 +2,22 @@
 * @file camera.c
 * @brief Implementation of the V4L2 camera initialization and teardown routines.
 *
-* This module handles all low-level operations required to prepare a V4L2 camera
+* This module handles low-level operations required to prepare a V4L2 camera
 * device for streaming, including:
-*   - Opening /dev/video0
-*   - Requesting streaming buffers
-*   - Memory-mapping kernel buffers to userspace
-*   - Queueing buffers for capture
-*   - Starting and stopping the video stream
-*   - Releasing all allocated resources on shutdown
+*   1. Opening control module /dev/cam_stream
+*   2. Opening camera device /dev/video0
+*   3. Configuring camera device
+*   4. Requesting streaming buffers
+*   5. Memory-mapping kernel buffers to user-space
+*   6. Queueing memory-mapped buffers for capture
+*   7. Starting and stopping the video stream
+*   8. Capturing and outputing video frames
+*   8. Releasing all allocated resources on shutdown
 * 
-* Only two public functions are exposed through camera.h:
-*   - initialize_camera()
-*   - close_camera()
+* Only three public functions are exposed through camera.h:
+*   1. initialize_camera() - Initialize and prepare the camera device for streaming.
+*   2. capture_frames() - Captures and outputs video frames.
+*   3. close_camera() - Stop the camera stream and release all associated resources.
 *
 * All other help functions are kept private to ensure proper encapsulation and
 * prevent external modules from depending on internal implementation details.
@@ -55,19 +59,16 @@ static void cleanup_buffers(struct camera_ctx *cctx);
 * On failure, the function automatically cleans up all resources allocated 
 * up to the failure point by calling close_camera().
 *
-* @param cctx Pointer to the camera context structure that will be initialized.
+* @param cctx Pointer to the camera context structure that holds all the states.
 *             
 * @return 0 on success
 *         Negative value on failure
-*
-* @note This is part of the public camera API and is exposed via camera.h.
 */
 int camera_init(struct camera_ctx *cctx)
 {
     memset(cctx, 0, sizeof(*cctx));
     cctx->cam_fd = -1;
     cctx->dev_fd = -1;
-
 
     if (open_control_device(cctx) < 0) goto error;
     if (configure_camera(cctx) < 0) goto error;
@@ -89,16 +90,13 @@ error:
 * @brief Stop the camera stream and release all associated resources.
 * 
 * This function performs full shutdown of the camera context:
-*   - Stops the V4L2 video stream if it is running
-*   - Unmaps and frees all MMAP buffers
-*   - Closes the camera and control device file descriptors
+*   1. Stops the V4L2 video stream if it is running
+*   2. Unmaps and frees all MMAP buffers
+*   3. Closes the camera and control device file descriptors
 *
-* @param cctx Pointer to a camera context structure whose resources 
-*             should be cleaned up. 
+* @param cctx Pointer to the camera context structure that holds all the states.
 *
-* @return void
-*
-* @note This is part of the public camera API and is exposed via camera.h
+* @return void 
 */
 
 void close_camera(struct camera_ctx *cctx)
@@ -108,11 +106,13 @@ void close_camera(struct camera_ctx *cctx)
     stop_stream(cctx);         // If stream started
     cleanup_buffers(cctx);     // If mmap buffers allocated
 
+    // Close control device
     if (cctx->cam_fd >= 0) {
         close(cctx->cam_fd);
         cctx->cam_fd = -1;
     }
 
+    // Close camera device
     if (cctx->dev_fd >= 0) {
         close(cctx->dev_fd);
         cctx->dev_fd = -1;
@@ -127,7 +127,7 @@ void close_camera(struct camera_ctx *cctx)
 * This function opens the custom kernel driver used for LED signaling
 * and camera control. It attempts to open @ref DEVICE_PATH with read/write 
 * permission and stores the resulting file descriptor in the global 
-* variable @ref ctx->dev_fd.
+* variable @ref cctx->dev_fd.
 *
 * @param cctx Pointer to the camera context structure that holds all session state.
 *
@@ -150,14 +150,15 @@ static int open_control_device(struct camera_ctx *cctx) {
 * 
 * This function opens the camera device with read/write access and applies
 * a predefined video capture format based on the Logitech C270 HD webcam 
-* specs obtained from 'c4l2-ctl -all'.
+* specs obtained from 'v4l2-ctl -all'.
 *
 * @param cctx Pointer to the camera context structure that holds all session state.
 * @return int:
 *           - 0 on success
 *           - -1 on failure (error message printed using perror)
 */
-static int configure_camera(struct camera_ctx *cctx) {
+static int configure_camera(struct camera_ctx *cctx) 
+{
     // --- Open camera device (/dev/video0) ---
     cctx->cam_fd = open(CAMERA_PATH, O_RDWR);
     if (cctx->cam_fd < 0) {
@@ -202,13 +203,15 @@ static int configure_camera(struct camera_ctx *cctx) {
 *
 * Initializes the v4l2_requestbuffers structure and requests a 
 * fixed number of buffers (4) for memory-mapped I/O.
+* - 4 buffers seems to be a widely used amount
 *
 * @param cctx Pointer to the camera context structure that holds all session state.
 * @return int
 *           - 0 on success
 *           - -errno on failure
 * */
-static int request_mmap_buffers(struct camera_ctx *cctx) {
+static int request_mmap_buffers(struct camera_ctx *cctx) 
+{
     memset(&cctx->req, 0, sizeof(cctx->req));
     cctx->req.count = 4;
     cctx->req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -224,20 +227,21 @@ static int request_mmap_buffers(struct camera_ctx *cctx) {
 }
 
 /**
-* @brief Maps kernel-allocated V4L2 buffers into user space
+* @brief Map kernel-allocated V4L2 buffers into user space
 *
-* After buffers are requested with VIDIOC_REQBUFS (see @ref request_buffers()),
+* After buffers are requested with VIDIOC_REQBUFS (see @ref request_mmap_buffers()),
 * this function retrieves metadata for each buffer using VIDIOC_QUERYBUF and 
-* maps them into user space via mmap(). The mapped buffers allow the application 
-* to directly access video frames written by the camera driver without copies.
+* maps them into user space via mmap(). The mapped buffers will allow the user-space
+* application to directly access video frames written by the camera driver without copies.
 *
-* @param ctx Pointer to the camera context structure that holds all session state.
+* @param cctx Pointer to the camera context structure that holds all session state.
 * @return int
 *           - 0 on success
 *           - -errno on failure
 *
 * @note On success, the caller is responsible for unmapping the buffers using 
 *       munmap() and freeing the `buffers` array.
+*       - Done during cleanup by @ref cleanup_buffers() called by @ref close_camera()
 */
 static int map_buffers(struct camera_ctx *cctx) 
 { 
@@ -274,6 +278,7 @@ static int map_buffers(struct camera_ctx *cctx)
                                     cctx->cam_fd, 
                                     cctx->buf.m.offset);
 
+        // If unsuccessfull, cleanup
         if(cctx->buffers[i].start == MAP_FAILED) {
             perror("camera: Failed mapping the buffer");
 
@@ -301,7 +306,8 @@ static int map_buffers(struct camera_ctx *cctx)
 *           - 0 on success
 *           - -errno on failure
 */
-static int queue_buffers(struct camera_ctx *cctx) {
+static int queue_buffers(struct camera_ctx *cctx) 
+{
     for (unsigned int i = 0; i < cctx->n_buffers; i++) {
         memset(&cctx->buf, 0, sizeof(cctx->buf));
 
@@ -358,12 +364,12 @@ static int start_stream(struct camera_ctx *cctx)
 *
 * This function runs the main capture loop. It repeteadly:
 *   1. Dequeues a filled buffer using VIDIOC_DQBUF
-*   2. Converts the YUYV data to JPEG image
-*   3. Sends the JPEG frame to the client
-*   4. Re-queues the buffer with VIDIOC_QBUF for reuse
+*   2. Sends the YUYV frame for processing
+*   3. Re-queues the buffer with VIDIOC_QBUF for reuse
 *
-* @param cctx   Pointer to the camera context structure that holds camera sessions.
-* @param sctx   Pointer to the stream structure context.
+* @param cctx       Pointer to the camera context structure that holds camera sessions.
+* @param sctx       Pointer to the stream structure context that holds stream sessions.
+* @param pipeline   Pointer to the pipeline structure context that holds thread sessions.
 *
 * @note STREAMON must have been called before entering this loop.
 * @note Buffers must already be requested, mapped, and queued.
@@ -448,7 +454,7 @@ static int stop_stream(struct camera_ctx *cctx)
 *           - 0 on success
 *           - -errno on failure
 */
-int led_stream_on(struct camera_ctx *cctx) {
+static int led_stream_on(struct camera_ctx *cctx) {
     if (ioctl(cctx->dev_fd, CAM_IOC_START) < 0) {
         perror("camera: Failed to send LED GREEN command");
         return -errno;
@@ -468,7 +474,7 @@ int led_stream_on(struct camera_ctx *cctx) {
 *           - 0 on success
 *           - -errno on failure
 */
-int led_stream_off(struct camera_ctx *cctx) {
+static int led_stream_off(struct camera_ctx *cctx) {
     if (ioctl(cctx->dev_fd, CAM_IOC_STOP) < 0) {
         perror("camera: Failed to send LED RED command");
         return -errno;
@@ -482,8 +488,9 @@ int led_stream_off(struct camera_ctx *cctx) {
 * @brief Unmaps all V4L2 buffers and frees buffer array.
 *
 * @param cctx Pointer to the camera context structure that holds all session state.
+* @return void 
 */
-void cleanup_buffers(struct camera_ctx *cctx)
+static void cleanup_buffers(struct camera_ctx *cctx)
 {
     if (!cctx->buffers) return;
 

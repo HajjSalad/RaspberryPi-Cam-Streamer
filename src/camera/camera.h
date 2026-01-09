@@ -3,11 +3,7 @@
 
 /**
 * @file camera.h
-* @brief Public API for V4L2 camera initialization and teardown.
-*
-* This header defines the public interface for managing a V4L2 camera device,
-* including opening the device, configuring capture settings, starting and 
-* stopping stream, and releasing all associated resources.
+* @brief Public API for V4L2 camera initialization, and teardown.
 */
 
 #include <stddef.h>
@@ -22,7 +18,6 @@
 // Forward declare the context structures
 struct stream_ctx;
 struct yuyv_frame;
-struct jpeg_frame;
 struct pipeline_ctx;
 
 /**
@@ -41,9 +36,9 @@ struct buffer {
 * @brief Aggregates all state required for a V4L2 camera streaming session.
 *
 * This context structure stores file descriptors, V4L2 configuration, buffer
-* metadata, and pointers to memory-mapped frame buffers. All camera operations 
-* take a pointer to this context instead of relying on global variables,
-* improving modularity and maintainability.
+* metadata, and pointers to memory-mapped frame buffers. 
+* All camera operations take a pointer to this context instead of relying on global
+* variables, improving modularity and maintainability.
 */
 struct camera_ctx {
     int dev_fd;                     /**< File descriptor for LED/control device */
@@ -60,6 +55,6 @@ struct camera_ctx {
 /* Function Prototypes */
 int camera_init(struct camera_ctx *cctx);
 void close_camera(struct camera_ctx *cctx);
-int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe);
+int capture_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipeline);
 
 #endif /* CAMERA_H */
