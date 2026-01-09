@@ -33,7 +33,8 @@ The project includes **comprehensive Doxygen documentation** covering:
 
 - Camera configuration using V4L2 API, including format negotiation and stream parameters
 - Buffer allocation and zero-copy frame access via memory mapping I/O (MMAP)
-- Continuous frame capture with explicit buffer dequeue and re-queue operations
+- Continuous frame capture with explicit buffer dequeue and re-queue operations   
+
 `V4L2` · `Camera drivers` · `MMAP` · `Buffer management` · `Video streaming`
 
 ✅ **Multithreaded Producer-Consumer Architecture**
