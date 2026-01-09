@@ -3,7 +3,8 @@ A real-time camera streaming system built on a Raspberry Pi that integrates a cu
 
 This project demonstrates end-to-end system design across kernel space and user space. It combines Linux interfaces (V4L2, IOCTL, MMAP) with concurrent data pipelines and computer vision inference.
 
-[Additional Project Notes on Notion](https://www.notion.so/hajjsalad/Pi-Camera-Streamer-Overall-Project-Notes-2cca741b5aab80cf8412cb5dc12558e8)
+💡 **Additional Notes**
+Each key feature includes a link to **in-depth implementation notes** that describe how the module was designed and built.
 
 ### 🌿 Branches 
 - `main` - Stable, fully integrated version of the project
@@ -38,9 +39,11 @@ The project includes **comprehensive Doxygen documentation** covering:
 `V4L2` · `Camera drivers` · `MMAP` · `Buffer management` · `Video streaming`
 
 ✅ **Multithreaded Producer-Consumer Architecture**
-- Producer thread captures frames from the camera
-- Consumer thread streams frames to HTTP clients
-- Lock-protected circular buffer
+- Dedicated producer thread captures frames from the camera pipeline
+- Consumer thread streams encoded frames to connected HTTP clients
+- Lock-protected circular buffer ensure safe, low-latency data exchange between threads    
+
+`Mutex` · `Semaphore` · `Circular buffers` · `Multithreading` 
 
 ✅ **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00)
 
@@ -54,12 +57,14 @@ The project includes **comprehensive Doxygen documentation** covering:
 ### 🧶 Threading Model
 - Producer Thread
   - Continously capture frames using V4L2
+  - Creates the buffer
   - Converts raw frames and pushes them into a circular buffer
   - Signals frame availability using a semaphore
 - Consumer Thread
   - Waits on the semaphore for available frames
   - Retrieves JPEG frames from the circular buffer
   - Streams JPEG frames to connected HTTP clients   
+  - Frees the buffer
   
 This design allows for **producer thread** to run continously, while a new **consumer thread** is spawned per client.
 
