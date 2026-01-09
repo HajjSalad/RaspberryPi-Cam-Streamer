@@ -31,9 +31,10 @@ The project includes **comprehensive Doxygen documentation** covering:
 
 ✅ **V4L2-Based Camera Pipeline**  [Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929)
 
-- Camera configuration and format negotiation
-- Buffer allocation and memory mapping (MMAP)
-- Continuous frame capture and re-queuing
+- Camera configuration using V4L2 API, including format negotiation and stream parameters
+- Buffer allocation and zero-copy frame access via memory mapping I/O (MMAP)
+- Continuous frame capture with explicit buffer dequeue and re-queue operations
+`V4L2` · `Camera drivers` · `MMAP` · `Buffer management` · `Video streaming`
 
 ✅ **Multithreaded Producer-Consumer Architecture**
 - Producer thread captures frames from the camera
