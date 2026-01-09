@@ -43,7 +43,7 @@ The project includes **comprehensive Doxygen documentation** covering:
 - Consumer thread streams encoded frames to connected HTTP clients
 - Lock-protected circular buffer ensure safe, low-latency data exchange between threads    
 
-`Mutex` · `Semaphore` · `Circular buffers` · `Multithreading` 
+`Mutex` · `Semaphore` · `Circular buffers` · `Multithreading` · `Producer-consumer model`
 
 ✅ **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00)
 
