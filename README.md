@@ -3,8 +3,7 @@ A real-time camera streaming system built on a Raspberry Pi that integrates a cu
 
 This project demonstrates end-to-end system design across kernel space and user space. It combines Linux interfaces (V4L2, IOCTL, MMAP) with concurrent data pipelines and computer vision inference.
 
-💡 **Additional Notes**  
-- Each key feature includes a link to **in-depth implementation notes** that describe how the module was designed and built.
+💡 **Additional Notes**: Each key feature includes a link to **in-depth implementation notes** that describe how the module was designed and built.
 
 #### 🌿 Branches 
 - `main` - Stable, fully integrated version of the project
@@ -12,8 +11,7 @@ This project demonstrates end-to-end system design across kernel space and user 
 - `stream_detect` - Streaming pipeline with on-device object detection
 - `gh-pages` - Generated documentation hosted via github pages
 
-#### 📝 Documentation 
-The project includes **comprehensive Doxygen documentation** covering modules, functions, classes and detailed usage.       
+📝 **Documentation**: The project includes **comprehensive Doxygen documentation** covering modules, functions, classes and detailed usage.       
 
 👉 Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)      
 👉 Explore how the documentation was structured and written: [Notes on Notion](https://www.notion.so/hajjsalad/Doxygen-Documentation-2dea741b5aab809989afdaf9d198430b)
