@@ -1,0 +1,11 @@
+<map id="src/cb/circular_buffer.h" name="src/cb/circular_buffer.h">
+<area shape="rect" id="Node000001" title="Circular buffer interface for storing pointers to JPEG frames." alt="" coords="311,5,479,31"/>
+<area shape="rect" id="Node000002" href="$circular__buffer_8c.html" title="Circular buffer implementation for storing JPEG frame pointers." alt="" coords="5,79,172,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="333,36,139,81,138,76,332,31"/>
+<area shape="rect" id="Node000003" href="$mjpeg__stream_8c.html" title="MJPEG frame streaming over HTTP." alt="" coords="196,79,376,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="368,40,305,81,302,76,365,36"/>
+<area shape="rect" id="Node000004" href="$image__processor_8c.html" title="Image processing stage of the camera streaming pipeline." alt="" coords="401,79,611,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="426,36,489,76,486,81,423,40"/>
+<area shape="rect" id="Node000005" href="$main_8c.html" title="Entry point for the Raspberry Pi MJPEG streaming." alt="" coords="636,79,725,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="455,31,637,76,635,81,454,37"/>
+</map>

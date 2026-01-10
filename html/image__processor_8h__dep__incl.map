@@ -1,0 +1,11 @@
+<map id="src/image/image_processor.h" name="src/image/image_processor.h">
+<area shape="rect" id="Node000001" title="Image processing interface for the camera streaming pipeline." alt="" coords="281,5,493,31"/>
+<area shape="rect" id="Node000002" href="$camera_8c.html" title="Implementation of the V4L2 camera initialization and teardown routines." alt="" coords="5,79,164,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="326,36,134,81,133,76,325,31"/>
+<area shape="rect" id="Node000003" href="$mjpeg__stream_8c.html" title="MJPEG frame streaming over HTTP." alt="" coords="188,79,368,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="360,40,297,81,294,76,357,36"/>
+<area shape="rect" id="Node000004" href="$image__processor_8c.html" title="Image processing stage of the camera streaming pipeline." alt="" coords="393,79,603,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="418,36,481,76,478,81,415,40"/>
+<area shape="rect" id="Node000005" href="$main_8c.html" title="Entry point for the Raspberry Pi MJPEG streaming." alt="" coords="628,79,717,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="447,31,629,76,627,81,446,37"/>
+</map>

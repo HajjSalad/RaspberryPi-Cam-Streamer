@@ -1,0 +1,13 @@
+<map id="src/camera/camera.h" name="src/camera/camera.h">
+<area shape="rect" id="Node000001" title="Public API for V4L2 camera initialization, and teardown." alt="" coords="381,5,540,31"/>
+<area shape="rect" id="Node000002" href="$camera_8c.html" title="Implementation of the V4L2 camera initialization and teardown routines." alt="" coords="5,79,164,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="388,36,146,81,145,76,387,31"/>
+<area shape="rect" id="Node000003" href="$http__server_8c.html" title="HTTP server handler module." alt="" coords="188,79,347,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="418,38,300,81,298,76,416,33"/>
+<area shape="rect" id="Node000004" href="$mjpeg__stream_8c.html" title="MJPEG frame streaming over HTTP." alt="" coords="371,79,551,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="463,44,463,79,458,79,458,44"/>
+<area shape="rect" id="Node000005" href="$image__processor_8c.html" title="Image processing stage of the camera streaming pipeline." alt="" coords="575,79,786,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="510,32,646,76,644,81,508,37"/>
+<area shape="rect" id="Node000006" href="$main_8c.html" title="Entry point for the Raspberry Pi MJPEG streaming." alt="" coords="811,79,900,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="542,30,798,76,811,78,810,84,798,81,541,36"/>
+</map>
