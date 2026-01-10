@@ -2,7 +2,13 @@
 * @file main.c
 * @brief Entry point for the Raspberry Pi MJPEG streaming.
 *
-* Longer description ...
+* Responsibilities:
+*   1. Initialize the camera
+*   2. Start the HTTP server
+*   3. Setup the multithreaded producer-consumer pipeline
+*
+* This file coordinates the end-to-end streaming process from camera capture
+* to HTTP MJPEG delivery.
 */
 
 #include <stdio.h>
@@ -20,7 +26,7 @@
 #include "image/image_encoder.h"
 #include "image/image_processor.h"
 
-#define THREAD_NUM      2
+/** @brief TCP port on which the HTTP MJPEG server listens. */
 #define SERVER_PORT     8080
 
 /** @brief Instantiate a circular buffer used for producer–consumer data exchange. */
@@ -40,6 +46,7 @@ pthread_mutex_t mutexBuffer;
 /** @brief Producer thread */
 static void* producer(void* args) {
     pipeline_ctx *pipeline = args;
+
     if (capture_frames(pipeline->cctx, pipeline->sctx, pipeline) < 0) {
         perror("Producer breaking - Error in capturing frames");
     }
@@ -51,18 +58,21 @@ static void* producer(void* args) {
 static void* consumer(void* args) {
     pipeline_ctx *pipeline = args;
 
-    while(1) 
-    {
+    while(1) {
         sem_wait(&semData);                     // BLOCK if no data
         if (send_frames(pipeline->cctx, pipeline->sctx, pipeline) < 0) {
             perror("Consumer breaking - Error in sending frames");
             break;
         }
     }
-
     return NULL;
 }
 
+/**
+* @brief Application entry point
+* 
+* @return 0 on normal termination, negative value on fatal error.
+*/
 int main(void) 
 {
     circular_buffer_init(&cb);                  // Initialize circular buffer

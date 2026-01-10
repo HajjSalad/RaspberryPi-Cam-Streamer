@@ -17,8 +17,7 @@ struct stream_ctx {
     int client_fd;                 /**< Connected client socket */
 };
 
-// Function Prototypes
+/** Function Prototypes */
 int send_frames(struct camera_ctx *cctx, struct stream_ctx *sctx, struct pipeline_ctx *pipe);
-int send_mjpeg_frame(struct jpeg_frame *frame, struct stream_ctx *sctx);
 
 #endif  // MJPEG_STREAM_H
