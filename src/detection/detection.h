@@ -3,17 +3,21 @@
 
 /**
 * @file detector.h
-* @brief 
+* @brief Public interface for the TensorFlow Lite object detection module.
 */
 
 #include <stdint.h>
 
+/**
+* @brief
+*
+*/
 struct detection_ctx {
-    void *model;                // tflite::FlatBufferModel*
-    void *interpreter;          // tflite::Interpreter*
+    void *model;                /**< tflite::FlatBufferModel* */
+    void *interpreter;          /**< tflite::Interpreter* */
 };
 
-// Function Prototypes
+/** Function Prototypes */
 int detector_init(struct detection_ctx *dctx);
 // void run_object_detection(struct detector_ctx *dctx);
 // void draw_detections(unsigned char *rgb,

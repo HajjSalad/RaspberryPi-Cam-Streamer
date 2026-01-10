@@ -1,6 +1,11 @@
 /**
-* @file detector.c
-* @brief 
+* @file detection.c
+* @brief TensorFlow Lite–based object detection module.
+*
+* This file implements the object detection subsystem, including:
+*   1. One-time initialization for the TensorFlow Lite model and interpreter
+*   2. Running inference on RGB frames
+*   3. Rendering detection results (bounding boxes and labels) onto frames
 */
 
 #include <cstdio>
@@ -13,10 +18,11 @@
 #include <tensorflow/lite/interpreter.h>
 #include <tensorflow/lite/kernels/register.h>
 
+/** @brief Path to the TensorFlow Lite SSD MobileNet model */
 #define MODEL_PATH  "models/detect.tflite"
 
 /**
-* @brief Initialize the object detector (One-time setup)
+* @brief Initialize the object detection
 *
 * This function:
 *   - Loads the TensorFlow lite model from disk
@@ -78,38 +84,10 @@ int detector_init(struct detection_ctx *dctx)
     dctx->model = model.release();
     dctx->interpreter = interpreter.release();
 
-    // Inspect Model Input Tensor
-    auto *interp = static_cast<tflite::Interpreter*>(dctx->interpreter);
-
-    int input = interp->inputs()[0];
-    TfLiteTensor *tensor = interp->tensor(input);
-
-    printf("detector: Input tensor:\n");
-    printf("    Type: %d\n", tensor->type);
-    printf("    Dims: ");
-
-    for (int i=0; i < tensor->dims->size; i++) {
-        printf("%d ", tensor->dims->data[i]);
-    }
-    printf("\n");
-
-    // Feed fake frame for test
-    uint8_t *input_data = interp->typed_input_tensor<uint8_t> (0);
-    size_t input_bytes = tensor->bytes;
-
-    // Fill with zeros
-    memset(input_data, 0, input_bytes);
-
-    // Run Inference
-    if (interp->Invoke() != kTfLiteOk) {
-        printf("detector: Invoke failed\n");
-        return -1;
-    }
-
-    printf("detector: Inference ran successfully\n");
-
     return 0;
 }
+
+
 
 // Ran per frame 
 // Returns detection results (boxes + labels)
