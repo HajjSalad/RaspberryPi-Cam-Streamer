@@ -4,15 +4,15 @@ A real-time camera streaming system built on a Raspberry Pi that integrates a cu
 This project demonstrates end-to-end system design across kernel space and user space. It combines Linux interfaces (V4L2, IOCTL, MMAP) with concurrent data pipelines and computer vision inference.
 
 💡 **Additional Notes**  
-Each key feature includes a link to **in-depth implementation notes** that describe how the module was designed and built.
+- Each key feature includes a link to **in-depth implementation notes** that describe how the module was designed and built.
 
-## 🌿 Branches 
+#### 🌿 Branches 
 - `main` - Stable, fully integrated version of the project
 - `stream` - Core camera capture and MJPEG streaming pipeline
 - `stream_detect` - Streaming pipeline with on-device object detection
 - `gh-pages` - Generated documentation hosted via github pages
 
-## 📝 Documentation 
+#### 📝 Documentation 
 The project includes **comprehensive Doxygen documentation** covering modules, functions, classes and detailed usage.       
 
 👉 Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)      
@@ -53,7 +53,8 @@ The project includes **comprehensive Doxygen documentation** covering modules, f
 - Performs on-device inference using TensorFlow Lite on captured frames
 - Optimized for real-time edge deployment on the Raspberry Pi    
 
-`Edge AI` · `Object Detection` · `Embedded ML` · `TensorFlow Lite` · `Real-time Inference`
+`Edge AI` · `Object Detection` · `Embedded ML` · `TensorFlow Lite` · `Real-time Inference`. 
+
 ---
 ### 🧶 Threading Model
 - Producer Thread
@@ -71,7 +72,7 @@ This design allows for **producer thread** to run continously, while a new **con
 ### 🏗️ High Level Flow
 ![Block Diagram](./Pi_cam_stream_Block_diagram.png)   
 
-# Program Flow Explanation
+#### Program Flow Explanation
 ```
 main.c (Program Entry Point)
 ├─> Initialize camera module (opens custom kernel module)
