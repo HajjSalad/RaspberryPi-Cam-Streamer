@@ -144,19 +144,3 @@ int send_mjpeg_http_header(struct stream_ctx *sctx)
     return 0;
 }
 
-/**
-* @brief Handle a single HTTP client connection for MJPEG streaming.
-*
-* This function enters the frame capture/stream loop and continues sending 
-* JPEG frames until the client disconnects or an error occurs.
-*
-* @param cctx Camera capture context.
-* @param sctx Stream context containing the client socket.
-* @return 0 on normal disconnect, -1 on error.
-*/
-// int handle_http_client(struct jpeg_frame *frame, struct camera_ctx *cctx, struct stream_ctx *sctx) 
-// {
-//     // Now start sending frames
-//     printf("http_server: Sending JPEG frames to client now...\n");
-//     return capture_frames(frame, cctx, sctx);
-// }
