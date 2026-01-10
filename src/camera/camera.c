@@ -368,8 +368,8 @@ static int start_stream(struct camera_ctx *cctx)
 *   3. Re-queues the buffer with VIDIOC_QBUF for reuse
 *
 * @param cctx       Pointer to the camera context structure that holds camera sessions.
-* @param sctx       Pointer to the stream structure context that holds stream sessions.
-* @param pipeline   Pointer to the pipeline structure context that holds thread sessions.
+* @param sctx       Pointer to the stream context containing stream session info.
+* @param pipeline   Pointer to the pipeline context containing thread and synchronization primitives
 *
 * @note STREAMON must have been called before entering this loop.
 * @note Buffers must already be requested, mapped, and queued.

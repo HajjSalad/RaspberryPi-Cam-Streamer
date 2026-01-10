@@ -1,6 +1,10 @@
 /**
 * @file mjpeg_stream.c
 * @brief MJPEG frame streaming over HTTP.
+*
+* This module implements the MJPEG-over-HTTP streaming layer, responsible
+* for transmitting JPEG-encoded frames to connected clients using the
+* multipart/x-mixed-replace format.
 */
 
 #include <stdio.h>     
@@ -16,13 +20,32 @@
 #include "image/image_encoder.h"
 #include "image/image_processor.h"
 
-// Stream coordinator
+/** Function Prototypes */
+static int send_mjpeg_frame(struct jpeg_frame *frame, struct stream_ctx *sctx);
+
+/**
+* @brief Consume JPEG frames from the pipeline and stream them to the client
+*
+* Performs the following pipeline stages:
+*   1. Retrieve a JPEG frame from the shared circular buffer
+*   2. Send the JPEG frame to the connected client as MJPEG frame
+*   3. Release associated memory after transmission
+*
+* @note This function represents the consumer stage of the producer-consumer streaming pipeline.
+*
+* @param cctx   Pointer to the camera context structure that holds all session state
+* @param sctx   Pointer to the stream structure context that holds stream sessions
+* @param pipe   Pointer to the pipeline context containing thread and synchronization primitives
+* 
+* @return 0 on success, negative value on error
+*/
 int send_frames(struct camera_ctx *cctx, 
                 struct stream_ctx *sctx, 
                 struct pipeline_ctx *pipe) 
 {
     struct jpeg_frame *jpeg = NULL;
 
+    // Retrieve th JPEG frame from the circular buffer
     pthread_mutex_lock(pipe->mutex);
     cb_read(pipe->cb, &jpeg);
     pthread_mutex_unlock(pipe->mutex);
@@ -65,7 +88,7 @@ int send_frames(struct camera_ctx *cctx,
 *
 * @return 0 on success, negative value on error.
 */
-int send_mjpeg_frame(struct jpeg_frame *frame, struct stream_ctx *sctx) 
+static int send_mjpeg_frame(struct jpeg_frame *frame, struct stream_ctx *sctx) 
 {
     if (!frame || !frame->data || frame->size == 0) {
         printf("Frames empty/not available");

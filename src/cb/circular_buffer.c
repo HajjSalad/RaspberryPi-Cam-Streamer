@@ -3,8 +3,7 @@
 * @brief Circular buffer implementation for storing JPEG frame pointers
 *
 * This module provides a FIFO circular buffer with overwrite-on-full behaviour.
-* It is intended for producer-consumer pipelines where dropping old frames is 
-* acceptable (ex. video streaming).
+* It is intended for producer-consumer pipelines where old frames are dropped.
 */
 
 #include <stdint.h>
@@ -34,6 +33,8 @@ void circular_buffer_init(CircularBuffer *cb) {
 *
 * @param cb Pointer to the CircularBuffer instance.
 * @param frame Pointer to the jpeg_frame to store
+*
+* @return void
 */
 void cb_write(CircularBuffer *cb, struct jpeg_frame *frame)
 {
