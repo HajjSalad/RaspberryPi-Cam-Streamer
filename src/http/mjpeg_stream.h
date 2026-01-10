@@ -1,6 +1,11 @@
 #ifndef MJPEG_STREAM_H
 #define MJPEG_STREAM_H
 
+/**
+* @file mjpeg_stream.h
+* @brief Public API for MJPEG frame streaming over HTTP.
+*/
+
 // Forward declare the context structures
 struct camera_ctx;
 struct stream_ctx;
