@@ -3,26 +3,23 @@ A real-time camera streaming system built on a Raspberry Pi that integrates a cu
 
 This project demonstrates end-to-end system design across kernel space and user space. It combines Linux interfaces (V4L2, IOCTL, MMAP) with concurrent data pipelines and computer vision inference.
 
-💡 **Additional Notes**
+💡 **Additional Notes**  
 Each key feature includes a link to **in-depth implementation notes** that describe how the module was designed and built.
 
-### 🌿 Branches 
+## 🌿 Branches 
 - `main` - Stable, fully integrated version of the project
 - `stream` - Core camera capture and MJPEG streaming pipeline
 - `stream_detect` - Streaming pipeline with on-device object detection
 - `gh-pages` - Generated documentation hosted via github pages
 
-### 📝 Documentation 
-The project includes **comprehensive Doxygen documentation** covering:
-- Modules
-- Functions
-- Classes and detailed usage    
+## 📝 Documentation 
+The project includes **comprehensive Doxygen documentation** covering modules, functions, classes and detailed usage.       
 
 👉 Explore the generated docs: [Doxygen Documentation](https://hajjsalad.github.io/RaspberryPi-Cam-Streamer/html/index.html)      
 👉 Explore how the documentation was structured and written: [Notes on Notion](https://www.notion.so/hajjsalad/Doxygen-Documentation-2dea741b5aab809989afdaf9d198430b)
 
 ### 🗝️ Key Features  
-✅ **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
+1. **Custom Linux Kernel Module**  [Notes on Notion](https://www.notion.so/hajjsalad/Cam-Stream-Kernel-Module-2cca741b5aab80e1bddbe204e5e99eae)  
 
 - Character device driver exposing camera control and LED status signaling via `ioctl`
 - Well-defined kernel ↔ user-space interface with minimal surface area
@@ -30,7 +27,7 @@ The project includes **comprehensive Doxygen documentation** covering:
 
 `GPIO` · `IOCTL` · `Character device` · `Linux kernel` · `kernel ↔ user space interface`
 
-✅ **V4L2-Based Camera Pipeline**  [Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929)
+2. **V4L2-Based Camera Pipeline**  [Notes on Notion](https://www.notion.so/hajjsalad/V4L2-Streaming-Pipeline-2cca741b5aab80be8b30e62d9311b929)
 
 - Camera configuration using V4L2 API, including format negotiation and stream parameters
 - Buffer allocation and zero-copy frame access via memory mapping I/O (MMAP)
@@ -38,38 +35,62 @@ The project includes **comprehensive Doxygen documentation** covering:
 
 `V4L2` · `Camera drivers` · `MMAP` · `Buffer management` · `Video streaming`
 
-✅ **Multithreaded Producer-Consumer Architecture**
+3. **Multithreaded Producer-Consumer Architecture**
 - Dedicated producer thread captures frames from the camera pipeline
 - Consumer thread streams encoded frames to connected HTTP clients
 - Lock-protected circular buffer ensure safe, low-latency data exchange between threads    
 
 `Mutex` · `Semaphore` · `Circular buffers` · `Multithreading` · `Producer-consumer model`
 
-✅ **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00)
+4. **MJPEG HTTP Streaming**  [Notes on Notion](https://www.notion.so/hajjsalad/MJPEG-HTTP-Streaming-2cca741b5aab80d9ab6beddf8d86db00)
 
-- Lightweight HTTP server
-- Multipart MJPEG streaming to browsers
+- Lightweight HTTP server for serving video streams
+- Multipart MJPEG streaming compatible with web browsers and MJPEG clients     
 
-✅ **Real-Time Object Detection**  [Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4)
-- TensorFlow Lite inference on captured frames
-- Designed for edge deployment
+`HTTP` · `MJPEG` · `Sockets` · `Lightweight server` · `Multipart streams`
+
+5. **Real-Time Object Detection**  [Notes on Notion](https://www.notion.so/hajjsalad/Object-Detection-2d2a741b5aab80ac958fc72ffb4de8a4)
+- Performs on-device inference using TensorFlow Lite on captured frames
+- Optimized for real-time edge deployment on the Raspberry Pi    
+
+`Edge AI` · `Object Detection` · `Embedded ML` · `TensorFlow Lite` · `Real-time Inference`
 ---
 ### 🧶 Threading Model
 - Producer Thread
-  - Continously capture frames using V4L2
-  - Creates the buffer
-  - Converts raw frames and pushes them into a circular buffer
+  - Continously capture frames from the camera using V4L2
+  - Converts raw frames to JPEG and pushes them into a circular buffer
   - Signals frame availability using a semaphore
 - Consumer Thread
   - Waits on the semaphore for available frames
   - Retrieves JPEG frames from the circular buffer
   - Streams JPEG frames to connected HTTP clients   
-  - Frees the buffer
+  - Frees the memory of the processed frames
   
 This design allows for **producer thread** to run continously, while a new **consumer thread** is spawned per client.
 
 ### 🏗️ High Level Flow
-![Block Diagram](./Pi_cam_stream_Block_diagram.png)
+![Block Diagram](./Pi_cam_stream_Block_diagram.png)   
+
+# Program Flow Explanation
+```
+main.c (Program Entry Point)
+├─> Initialize camera module (opens custom kernel module)
+├─> Start HTTP server for MJPEG streaming
+└─> Initialize threading pipeline
+
+Producer Thread
+├─> Capture frames from the camera (YUYV format)
+├─> Convert YUYV → RGB
+├─> Optional: Perform object detection on RGB frames
+├─> Convert RGB → JPEG
+└─> Push JPEG frames into circular buffer
+
+Consumer Thread
+├─> Retrieve JPEG frames from circular buffer
+└─> Stream frames over HTTP (MJPEG)
+
+├─> Display stream in browser   
+```
 ---
 ### ⚙️ Hardware
 - **Raspberry Pi 5** - primary embedded platform for kernel and user-space execution
