@@ -18,6 +18,7 @@ camera_client
 trigger_server
 test_tflite
 test_detector
+test_detection
 *.out
 *.exe
 *.raw

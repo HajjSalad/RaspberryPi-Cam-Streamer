@@ -8,17 +8,18 @@
 
 #include <stdint.h>
 
-/**
-* @brief
-*
-*/
-struct detection_ctx {
+/** @brief Context structure for the object detection module */
+struct detector_ctx {
     void *model;                /**< tflite::FlatBufferModel* */
     void *interpreter;          /**< tflite::Interpreter* */
 };
 
+struct detection_results {
+
+}
+
 /** Function Prototypes */
-int detector_init(struct detection_ctx *dctx);
+int detector_init(struct detector_ctx *dctx);
 // void run_object_detection(struct detector_ctx *dctx);
 // void draw_detections(unsigned char *rgb,
 //                      int width,

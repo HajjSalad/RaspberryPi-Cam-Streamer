@@ -51,7 +51,11 @@ int image_processor(struct yuyv_frame *yuyv,
     }
 
     // if (motion_detected) {
+    //     // Run object detection
     //     run_object_detection(&rgb, &result);
+
+    //     // Visualization- Draw bounding boxes/labels
+    //     draw_detection();
     // }
 
     // 2. RGB -> JPEG
