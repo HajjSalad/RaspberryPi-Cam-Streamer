@@ -1,0 +1,7 @@
+<map id="src/image/image_processor.h" name="src/image/image_processor.h">
+<area shape="rect" id="Node000001" title="Image processing interface for the camera streaming pipeline." alt="" coords="5,5,217,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="9,79,93,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,33,72,70,68,66,99,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="118,79,225,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="123,29,155,66,151,70,119,33"/>
+</map>

@@ -1,0 +1,40 @@
+<map id="src/camera/camera.c" name="src/camera/camera.c">
+<area shape="rect" id="Node000001" title="Implementation of the V4L2 camera initialization and teardown routines." alt="" coords="537,5,695,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,72,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="537,28,336,46,213,62,86,81,85,76,212,56,336,41,536,22"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="97,79,159,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="537,29,373,49,173,81,173,76,372,44,536,24"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="183,79,251,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="538,33,414,53,265,81,265,76,413,48,537,28"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="275,79,346,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="567,33,360,81,359,76,566,28"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="371,79,445,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="583,33,456,77,454,72,582,28"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="470,79,541,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="600,33,537,73,534,69,597,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="565,79,667,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="619,31,619,65,613,65,613,31"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="692,79,780,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="637,28,706,69,703,74,634,33"/>
+<area shape="rect" id="Node000010" href="$camera_8h.html" title="Public API for V4L2 camera initialization, and teardown." alt="" coords="980,79,1063,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="688,28,967,76,966,81,687,33"/>
+<area shape="rect" id="Node000013" href="$cam__stream__ioctl_8h.html" title="Shared IOCTL definitions for cam_stream kernel module and userspace." alt="" coords="805,79,955,104"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="659,28,825,72,823,78,658,33"/>
+<area shape="rect" id="Node000015" href="$mjpeg__stream_8h.html" title="Public API for MJPEG frame streaming over HTTP." alt="" coords="1087,79,1246,104"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="696,27,1074,75,1074,81,695,32"/>
+<area shape="rect" id="Node000016" href="$image__encoder_8h.html" title="Public API for image format conversion and JPEG compression." alt="" coords="1271,79,1449,104"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="696,24,1257,76,1257,81,695,29"/>
+<area shape="rect" id="Node000017" href="$image__processor_8h.html" title="Image processing interface for the camera streaming pipeline." alt="" coords="1473,79,1663,104"/>
+<area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="696,21,1025,42,1460,76,1460,81,1025,48,696,27"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1264,152,1339,177"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1064,101,1251,148,1250,153,1063,106"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="953,152,1092,177"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="1024,104,1025,138,1020,139,1019,104"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="831,152,929,177"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="883,104,883,138,877,138,877,104"/>
+<area shape="poly" id="edge16_Node000016_Node000011" title=" " alt="" coords="1352,106,1321,143,1317,140,1348,103"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="1583,152,1667,177"/>
+<area shape="poly" id="edge18_Node000017_Node000018" title=" " alt="" coords="1580,103,1609,139,1605,143,1575,106"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="1452,152,1559,177"/>
+<area shape="poly" id="edge19_Node000017_Node000019" title=" " alt="" coords="1560,106,1527,143,1523,140,1556,103"/>
+</map>

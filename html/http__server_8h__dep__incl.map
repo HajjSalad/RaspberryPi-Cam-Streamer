@@ -1,0 +1,9 @@
+<map id="src/http/http_server.h" name="src/http/http_server.h">
+<area shape="rect" id="Node000001" title="Simple HTTP server API for streaming MJPEG data." alt="" coords="198,5,358,31"/>
+<area shape="rect" id="Node000002" href="$http__server_8c.html" title="HTTP server handler module." alt="" coords="5,79,164,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,38,117,81,115,76,233,33"/>
+<area shape="rect" id="Node000003" href="$mjpeg__stream_8c.html" title="MJPEG frame streaming over HTTP." alt="" coords="188,79,368,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="281,44,281,79,275,79,275,44"/>
+<area shape="rect" id="Node000004" href="$main_8c.html" title="Entry point for the Raspberry Pi MJPEG streaming." alt="" coords="392,79,481,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="317,34,412,76,410,81,315,39"/>
+</map>
