@@ -25,6 +25,7 @@ trigger_server
 /dist/
 /tmp/  
 /*.bak
+test_detection
 *.lo
 trigger_server.py
 
