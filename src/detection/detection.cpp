@@ -21,6 +21,8 @@
 /** @brief Path to the TensorFlow Lite SSD MobileNet model */
 #define MODEL_PATH  "src/detection/models/detect.tflite"
 
+// Static function prototypes
+static int resize_rgb_frame_nn();
 /**
 * @brief Initialize the object detection
 *
@@ -101,28 +103,46 @@ int detector_init(struct detector_ctx *dctx)
 *
 * Steps:
 *   1. Retrieve the input tensor from the interpreter
-*   2. Copy the frame data (RGB) into the input tensor
+*   2. Resize the RGB frame and place it in the input tensor
 *   3. Invoke the interpreter to run inference
 *   4. Read output tensors (bounding boxes, class IDs, confidence scores)
-*   5. 
+*   5. Store the results into `detection_result` struct
 *
-* @param dctx Pointer to the initialized detector context
+* Bounding boxes normalized coordinates:
+*   [ymin, xmin, ymax, xmax]
+*   Values in the range [0.0, 1,0]
+*
+* @param dctx   Pointer to the initialized detector context
+* @param frame  Pointer to the RGB frame to run detection on
+* @param result Pointer to the struct to store the detection outputs
 */
-void run_object_detection(struct detector_ctx *dctx)
+int run_object_detection(struct detector_ctx *dctx,
+                         struct rgb_frame *frame,
+                         struct detection_result *result)
 {
-    if(!dctx || !dctx->interpreter) {
+    if (!dctx || !dctx->interpreter) {
         printf("run_object_detection: Detector not initialized\n");
-        return;
+        return -1;
+    }
+    if (!frame || !result) {
+        printf("run_object_detection: Invalid input/output pointers\n");
+        return -1;
     }
 
     // Access the interpreter
-    auto *interp = static_cast<tflite::Interpreter*>(dctx->Interpreter);
+    auto *interp = static_cast<tflite::Interpreter*>(dctx->interpreter);
 
     // 1. Get input tensor
     int input_index = interp->inputs()[0];
-    TfLiteTensor *input_index = interp->tensor(input_index);
+    TfLiteTensor *input_tensor = interp->tensor(input_index);
 
-    // 2. Copy frame data into input tensor
+    // 2. Resize the frame into model input tensor (300x300 RGB)
+    uint8_t *input_data = interp->typed_input_tensor<uint8_t>(0);
+
+    if (resize_rgb_frame_nn(frame, input_data, 300, 300) != 0) {
+        printf("run_object_detection: frame resize failed\n");
+        return -1;
+    }
 
     // 3. Run inference
     if (interp->Invoke() != kTfLiteOk) {
@@ -130,10 +150,49 @@ void run_object_detection(struct detector_ctx *dctx)
         return;
     }
 
-    // 4. Read output tensors
+    // 4. Read output tensors: boxes, class IDs, scores, detection counts   // Shape of output tensor -> how many elements
+    float *boxes = interp->typed_output_tensor<float>(0);                   // [num,4]
+    float *class_ids = interp->typed_output_tensor<float>(1);               // [num]
+    float *scores = interp->typed_output_tensor<float>(2);                  // [num]
+    int *num_detections = interp->typed_output_tensor<int>(3);              // [1]
     
     // 5. Store the results
+    result->num_detections = num_detections[0];
 
+    for (int i=0; i < result->num_detections; i++) {
+        // [ymin, xmin, ymax, xmax]
+        result->boxes[i].ymin = boxes[i*4 + 0];
+        result->boxes[i].xmin = boxes[i*4 + 1];
+        result->boxes[i].ymax = boxes[i*4 + 2];
+        result->boxes[i].xmax = boxes[i*4 + 3];
+        result->class_ids[i] = (int)class_ids[i];
+        result->scores[i] = scores[i];
+    }
+
+    printf("run_detection: Detected %d objects\n", result->num_detections);
+
+    return 0;
+}
+
+/**
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*/
+static int resize_rgb_frame_nn(const struct rgb_frame *src,
+                               uint8_t *dst,
+                               int dst_w,
+                               int dst_h)
+{
+    if (!src || !src->data || !dst) {
+        return -1;
+    }
 }
 
 /** Draw the overlying Bounding Boxes
