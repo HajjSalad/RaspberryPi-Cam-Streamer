@@ -38,9 +38,11 @@
 int image_processor(struct yuyv_frame *yuyv, 
                     struct camera_ctx *cctx, 
                     struct stream_ctx *sctx,
-                    struct pipeline_ctx *pipe)
+                    struct pipeline_ctx *pipe,
+                    struct detector_ctx *dctx)
 { 
     struct rgb_frame rgb = {0};                            // Stack-allocated RGB frame 
+    struct detection_result result = {0};
     struct jpeg_frame *jpeg = calloc(1, sizeof(*jpeg));    // Heap-allocated JPEG frame
     if (!jpeg) return -1;
 
@@ -50,13 +52,21 @@ int image_processor(struct yuyv_frame *yuyv,
         goto cleanup;
     }
 
-    // if (motion_detected) {
-    //     // Run object detection
-    //     run_object_detection(&rgb, &result);
+    bool motion_detected = detect_motion(prev_frame, curr_frame);
 
-    //     // Visualization- Draw bounding boxes/labels
-    //     draw_detection();
-    // }
+    if (motion_detected) {
+        // Run object detection
+        int nd = run_object_detection(&dctx, &rgb, &result);
+        if (nd < 0) {
+            printf("image_processor: Object detection failed\n");
+            continue;
+        } 
+        
+        if (nd > 0) {
+            // Visualization - Draw bounding boxes/labels
+            draw_detection(&rgb, &result);
+        }
+    }
 
     // 2. RGB -> JPEG
     if (convert_rgb_to_jpeg(&rgb, jpeg) != 0) {

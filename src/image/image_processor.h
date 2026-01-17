@@ -15,6 +15,8 @@ struct stream_ctx;
 struct yuyv_frame;
 struct rgb_frame;
 struct jpeg_frame;
+struct detector_ctx;
+struct detection_result;
 typedef struct CircularBuffer CircularBuffer;
 
 /**
